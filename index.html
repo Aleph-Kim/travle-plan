@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>히로시마 동선</title>
+<meta name="theme-color" content="#b3261e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+:root {
+  --bg: #f6f4f1;
+  --card: #ffffff;
+  --ink: #1d1b19;
+  --muted: #6b655e;
+  --line: #e4dfd8;
+  --accent: #b3261e;
+  --accent-soft: #fbe9e7;
+  --night: #24304a;
+  --night-soft: #e8ecf5;
+  --rain: #1f5fa8;
+  --rain-soft: #e3eefb;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141312;
+    --card: #1e1c1a;
+    --ink: #eeeae5;
+    --muted: #a39c94;
+    --line: #34302c;
+    --accent: #ef6b5e;
+    --accent-soft: #3a1f1c;
+    --night: #a9b8dc;
+    --night-soft: #1e2433;
+    --rain: #7fb2ec;
+    --rain-soft: #162436;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+header { padding: 18px 16px 8px; }
+h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
+.flights { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.status { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.status.off { color: var(--accent); }
+nav {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; gap: 6px; overflow-x: auto;
+  padding: 10px 16px; background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
+}
+nav::-webkit-scrollbar { display: none; }
+nav button {
+  flex: 0 0 auto; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  padding: 7px 12px; border-radius: 999px; font: inherit; font-size: 14px;
+}
+nav button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+main { padding: 12px 16px 0; max-width: 640px; margin: 0 auto; }
+#extras { padding: 0 16px 40px; max-width: 640px; margin: 0 auto; }
+h2 { font-size: 18px; margin: 4px 0 12px; }
+h3 { font-size: 15px; margin: 22px 0 8px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.wx { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+.wx-main { font-size: 17px; font-weight: 600; }
+.wx-sub { color: var(--muted); font-size: 13px; }
+.wx-actions { display: flex; gap: 8px; margin-top: 10px; grid-column: 1 / -1; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 38px; padding: 0 12px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--card); color: var(--ink);
+  font: inherit; font-size: 14px; text-decoration: none;
+}
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn:disabled { opacity: .6; }
+.rain { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--rain-soft); color: var(--rain); font-size: 14px; }
+.rain.hot { font-weight: 600; }
+ol.stops { list-style: none; margin: 0; padding: 0; }
+.stop {
+  display: grid; grid-template-columns: 64px 1fr auto; gap: 2px 10px; align-items: start;
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+}
+.stop:last-child { border-bottom: 0; }
+.time { color: var(--muted); font-size: 13px; padding-top: 2px; font-variant-numeric: tabular-nums; }
+.name { font-weight: 600; }
+.note { grid-column: 2 / 3; color: var(--muted); font-size: 13px; }
+.badge { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 4px; font-size: 11px; font-weight: 600; background: var(--accent-soft); color: var(--accent); vertical-align: 1px; }
+.map { grid-row: 1 / span 2; grid-column: 3; min-height: 34px; font-size: 13px; }
+.evening { background: var(--night-soft); border-color: transparent; }
+.evening .name { color: var(--night); }
+.tip { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+.routes { display: flex; flex-wrap: wrap; gap: 8px; }
+details { margin-top: 10px; }
+summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
+.extras a { display: block; padding: 8px 0; border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; }
+.extras a:last-child { border-bottom: 0; }
+.err { color: var(--accent); font-size: 13px; margin-top: 6px; grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+<header>
+  <h1>히로시마 10/15–19</h1>
+  <p class="flights" id="flights"></p>
+  <div class="status" id="net"></div>
+</header>
+<nav id="tabs" role="tablist" aria-label="날짜"></nav>
+<main id="day"></main>
+<section id="extras"></section>
+
+<script>
+(function () {
+  'use strict';
+
+  var WX_KEY = 'trip-wx-v1';
+  var plan = null;
+  var current = 0;
+
+  function el(tag, attrs, children) {
+    var n = document.createElement(tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (k) {
+        if (k === 'text') n.textContent = attrs[k];
+        else if (k === 'class') n.className = attrs[k];
+        else n.setAttribute(k, attrs[k]);
+      });
+    }
+    (children || []).forEach(function (c) { if (c) n.appendChild(c); });
+    return n;
+  }
+
+  // 저장소 접근이 막힌 환경(사생활 보호 모드 등)에서도 페이지는 동작해야 함
+  function loadWx() {
+    try { return JSON.parse(localStorage.getItem(WX_KEY)) || null; } catch (e) { return null; }
+  }
+  function saveWx(v) {
+    try { localStorage.setItem(WX_KEY, JSON.stringify(v)); } catch (e) {}
+  }
+
+  function wmo(code) {
+    if (code === 0) return '맑음';
+    if (code === 1) return '대체로 맑음';
+    if (code === 2) return '구름 조금';
+    if (code === 3) return '흐림';
+    if (code === 45 || code === 48) return '안개';
+    if (code >= 51 && code <= 57) return '이슬비';
+    if (code >= 61 && code <= 67) return '비';
+    if (code >= 71 && code <= 77) return '눈';
+    if (code >= 80 && code <= 82) return '소나기';
+    if (code >= 95) return '뇌우';
+    return '-';
+  }
+
+  function fmtTime(iso) {
+    var d = new Date(iso);
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' +
+      String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  // 현지(일본) 날짜 기준으로 오늘 탭을 열어야 해외에서도 맞음
+  function todayIndex() {
+    var today = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
+    for (var i = 0; i < plan.days.length; i++) if (plan.days[i].date === today) return i;
+    return 0;
+  }
+
+  function stopItem(s) {
+    var name = el('div', { class: 'name', text: s.name });
+    if (s.saved === false && s.url) name.appendChild(el('span', { class: 'badge', text: '추천' }));
+    var li = el('li', { class: 'stop' }, [
+      el('div', { class: 'time', text: s.time || '' }),
+      name,
+      s.url ? el('a', { class: 'btn map', href: s.url, target: '_blank', rel: 'noopener', text: '지도' }) : null
+    ]);
+    if (s.note) li.appendChild(el('div', { class: 'note', text: s.note }));
+    return li;
+  }
+
+  function weatherCard(day) {
+    var loc = plan.locations[day.weather];
+    var wx = loadWx();
+    var d = wx && wx.data && wx.data[day.weather] && wx.data[day.weather][day.date];
+    var card = el('div', { class: 'card wx' });
+
+    if (d) {
+      card.appendChild(el('div', { class: 'wx-main', text: loc.name + ' · ' + wmo(d.code) + ' · ' + Math.round(d.max) + '° / ' + Math.round(d.min) + '°' }));
+      card.appendChild(el('div', { class: 'wx-sub', text: '강수 ' + (d.pop == null ? '-' : d.pop + '%') }));
+      card.appendChild(el('div', { class: 'wx-sub', style: 'grid-column:1/-1', text: '갱신 ' + fmtTime(wx.updatedAt) }));
+    } else {
+      card.appendChild(el('div', { class: 'wx-main', text: loc.name + ' · 날씨 정보 없음' }));
+      card.appendChild(el('div', { class: 'wx-sub', style: 'grid-column:1/-1', text: '아래 버튼으로 갱신' }));
+    }
+
+    var btn = el('button', { class: 'btn primary', type: 'button', text: '날씨 갱신' });
+    btn.addEventListener('click', function () { refreshWeather(btn, card); });
+    card.appendChild(el('div', { class: 'wx-actions' }, [
+      btn,
+      el('a', { class: 'btn', href: loc.accu, target: '_blank', rel: 'noopener', text: 'AccuWeather' })
+    ]));
+
+    var rainy = d && d.pop != null && d.pop >= plan.rainThreshold;
+    var rain = el('div', { class: 'rain' + (rainy ? ' hot' : '') });
+    rain.textContent = (rainy ? '비 예보 — 우천 동선으로: ' : '비 오면: ') + day.rain;
+    return [card, rain];
+  }
+
+  function refreshWeather(btn, card) {
+    btn.disabled = true;
+    btn.textContent = '갱신 중…';
+    var days = plan.days;
+    var start = days[0].date;
+    var end = days[days.length - 1].date;
+    var keys = Object.keys(plan.locations);
+
+    Promise.all(keys.map(function (k) {
+      var l = plan.locations[k];
+      var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + l.lat + '&longitude=' + l.lon +
+        '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max' +
+        '&timezone=Asia%2FTokyo&start_date=' + start + '&end_date=' + end;
+      return fetch(url, { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }).then(function (j) {
+        var out = {};
+        j.daily.time.forEach(function (t, i) {
+          out[t] = {
+            code: j.daily.weather_code[i],
+            max: j.daily.temperature_2m_max[i],
+            min: j.daily.temperature_2m_min[i],
+            pop: j.daily.precipitation_probability_max[i]
+          };
+        });
+        return [k, out];
+      });
+    })).then(function (rows) {
+      var data = {};
+      rows.forEach(function (r) { data[r[0]] = r[1]; });
+      saveWx({ updatedAt: new Date().toISOString(), data: data });
+      renderDay(current);
+    }).catch(function (e) {
+      btn.disabled = false;
+      btn.textContent = '날씨 갱신';
+      var old = card.querySelector('.err');
+      if (old) old.remove();
+      card.appendChild(el('div', { class: 'err', text: '갱신 실패 (' + e.message + ') — 저장된 마지막 값을 표시 중' }));
+    });
+  }
+
+  function renderDay(i) {
+    current = i;
+    var day = plan.days[i];
+    Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (b, j) {
+      b.setAttribute('aria-selected', j === i ? 'true' : 'false');
+    });
+
+    var main = document.getElementById('day');
+    main.textContent = '';
+    main.appendChild(el('h2', { text: day.label + ' · ' + day.title }));
+    weatherCard(day).forEach(function (n) { main.appendChild(n); });
+
+    main.appendChild(el('h3', { text: '동선' }));
+    main.appendChild(el('div', { class: 'card' }, [el('ol', { class: 'stops' }, day.stops.map(stopItem))]));
+
+    if (day.evening.length) {
+      main.appendChild(el('h3', { text: '저녁 · 노천욕 → 마트 → 2차' }));
+      main.appendChild(el('div', { class: 'card evening' }, [
+        el('ol', { class: 'stops' }, day.evening.map(stopItem)),
+        el('p', { class: 'tip', text: plan.onsenTip })
+      ]));
+    }
+
+    if (day.routes.length) {
+      main.appendChild(el('h3', { text: '길찾기' }));
+      main.appendChild(el('div', { class: 'routes' }, day.routes.map(function (r) {
+        return el('a', { class: 'btn', href: r.url, target: '_blank', rel: 'noopener', text: r.label });
+      })));
+    }
+  }
+
+  function renderExtras() {
+    var box = document.getElementById('extras');
+    box.appendChild(el('h3', { text: '저장 장소 더보기' }));
+    plan.extras.forEach(function (g) {
+      box.appendChild(el('details', { class: 'card extras' }, [
+        el('summary', { text: g.title + ' (' + g.items.length + ')' })
+      ].concat(g.items.map(function (s) {
+        return el('a', { href: s.url, target: '_blank', rel: 'noopener', text: s.name + ' ↗' });
+      }))));
+    });
+  }
+
+  function renderNet() {
+    var n = document.getElementById('net');
+    n.className = 'status' + (navigator.onLine ? '' : ' off');
+    n.textContent = navigator.onLine ? '' : '오프라인 — 저장된 일정과 마지막 날씨를 표시 중';
+  }
+
+  function init(p) {
+    plan = p;
+    document.getElementById('flights').textContent = '가는 편 ' + plan.flights.in + ' · 오는 편 ' + plan.flights.out;
+    var tabs = document.getElementById('tabs');
+    plan.days.forEach(function (d, i) {
+      var b = el('button', { type: 'button', role: 'tab', text: d.label });
+      b.addEventListener('click', function () { renderDay(i); window.scrollTo(0, 0); });
+      tabs.appendChild(b);
+    });
+    renderDay(todayIndex());
+    renderExtras();
+    renderNet();
+  }
+
+  window.addEventListener('online', renderNet);
+  window.addEventListener('offline', renderNet);
+
+  fetch('data/plan.json').then(function (r) { return r.json(); }).then(init).catch(function () {
+    document.getElementById('day').textContent = '일정 데이터를 불러오지 못했습니다. 한 번 온라인 상태에서 열어주세요.';
+  });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>

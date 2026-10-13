@@ -1,0 +1,12 @@
+{
+  "name": "히로시마 동선",
+  "short_name": "히로시마",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f4f1",
+  "theme_color": "#b3261e",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
