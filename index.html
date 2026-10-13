@@ -125,7 +125,6 @@ a { color: var(--blue); text-decoration: none; }
 .wx-cond { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
 .wx-pop { font-weight: 700; color: var(--blue); white-space: nowrap; }
 .wx-meta { font-size: 13px; color: var(--ink2); margin-top: 2px; }
-.wx-acts { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
 
 .sec { margin: 26px 4px 10px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
 
@@ -571,22 +570,11 @@ a { color: var(--blue); text-decoration: none; }
         el('div', { class: 'wx-cond', text: wmo(w.code) + '  ' + Math.round(w.max) + '° / ' + Math.round(w.min) + '°' }),
         el('div', { class: 'wx-pop', text: '강수 ' + (w.pop == null ? '-' : w.pop + '%') })
       ]));
-      card.appendChild(el('div', { class: 'wx-meta', text: loc.name + ' 예보. 모든 접속자 공통, ' + fmt(weather.updatedAt) + ' 갱신' }));
+      card.appendChild(el('div', { class: 'wx-meta', text: loc.name + ' 예보, ' + fmt(weather.updatedAt) + ' 갱신' }));
     } else {
       card.appendChild(el('div', { class: 'wx-cond', text: loc.name + ' 날씨' }));
-      card.appendChild(el('div', { class: 'wx-meta', text: weather ? '이 날짜 예보가 아직 없음' : '공유 날씨 데이터를 아직 불러오지 못함' }));
+      card.appendChild(el('div', { class: 'wx-meta', text: weather ? '이 날짜 예보가 아직 없음' : '날씨 데이터를 아직 불러오지 못함' }));
     }
-    var btn = el('button', { class: 'btn fill', type: 'button', text: '날씨 다시 불러오기' });
-    btn.addEventListener('click', function () {
-      btn.disabled = true; btn.textContent = '불러오는 중';
-      loadWeather().then(function () { renderDay(current, 0, true); }).catch(function (e) {
-        btn.disabled = false; btn.textContent = '날씨 다시 불러오기';
-        card.appendChild(el('div', { class: 'err', text: '불러오기 실패 (' + e.message + ')' }));
-      });
-    });
-    var row = el('div', { class: 'wx-acts' }, [btn]);
-    if (plan.weatherUpdateUrl) row.appendChild(el('a', { class: 'btn', href: plan.weatherUpdateUrl, target: '_blank', rel: 'noopener', text: '지금 갱신 요청' }));
-    card.appendChild(row);
     return card;
   }
 

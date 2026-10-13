@@ -2,7 +2,7 @@ name: weather
 
 on:
   schedule:
-    - cron: "7 * * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:
