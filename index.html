@@ -251,7 +251,8 @@ a { color: var(--blue); text-decoration: none; }
 .scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, .4); opacity: 0; }
 .panel {
   position: relative; width: 100%; max-width: 430px; background: var(--bg); border-radius: 14px 14px 0 0;
-  transform: translateY(100%); display: flex; flex-direction: column; max-height: 92vh;
+  transform: translateY(calc(100% + env(safe-area-inset-bottom, 0px) + 24px)); display: flex; flex-direction: column; max-height: 92vh;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .motion .sheet { transition: visibility 0s .5s; }
 .motion .sheet.open { transition: visibility 0s; }
@@ -837,7 +838,14 @@ a { color: var(--blue); text-decoration: none; }
     document.getElementById('day').textContent = '일정을 불러오지 못했습니다. 한 번 온라인 상태에서 열어 주세요.';
   });
 
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  // 캐시 우선이라 배포 직후 첫 화면은 이전 버전이므로, 새 서비스 워커가 넘겨받는 순간 한 번만 새로고침
+  if ('serviceWorker' in navigator) {
+    var hadSw = !!navigator.serviceWorker.controller, reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (hadSw && !reloaded) { reloaded = true; location.reload(); }
+    });
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
 })();
 </script>
 </body>
