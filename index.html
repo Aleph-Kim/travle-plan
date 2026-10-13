@@ -733,6 +733,16 @@ a { color: var(--blue); text-decoration: none; }
         el('div', null, [el('div', { class: 'leg' }, [el('span', { text: '출발' }), f.dep]), el('div', { class: 'leg' }, [el('span', { text: '도착' }), f.arr])])
       ]));
     });
+    // 식비, 마트, 술값은 선택에 따라 달라져서 확정된 교통과 입장료만 빼고 남는 돈을 보여줌
+    var fixed = plan.days.reduce(function (a, d) { return a + dayCost(d.stops); }, 0);
+    var yen = function (n) { return n.toLocaleString('ko-KR') + '엔'; };
+    box.appendChild(el('div', { class: 'row' }, [
+      el('div', { class: 'k' }, [el('b', { text: '현지 예산' }), yen(plan.budget)]),
+      el('div', null, [
+        el('div', { class: 'leg' }, [el('span', { text: '교통과 입장료' }), yen(fixed)]),
+        el('div', { class: 'leg' }, [el('span', { text: '식비와 쇼핑' }), yen(plan.budget - fixed)])
+      ])
+    ]));
   }
 
   // 날씨는 저장소의 공유 파일 하나를 모두가 같이 읽음 (기기에 따로 저장하지 않음)
