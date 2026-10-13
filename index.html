@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>히로시마 동선</title>
 <meta name="theme-color" content="#b3261e">
+<link rel="preload" href="data/plan.json" as="fetch" crossorigin>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <style>
@@ -58,7 +59,15 @@ body {
 }
 header { padding: 18px 16px 8px; }
 h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; }
-.flights { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+.flights { margin: 10px 0 0; display: grid; gap: 6px; }
+.flight {
+  display: grid; grid-template-columns: auto 1fr; gap: 0 12px; align-items: center;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px;
+}
+.flight .fl { grid-row: span 2; font-size: 13px; color: var(--muted); line-height: 1.35; }
+.flight .fl b { display: block; color: var(--ink); font-size: 14px; }
+.flight .leg { font-size: 14px; font-variant-numeric: tabular-nums; }
+.flight .leg span { display: inline-block; width: 30px; color: var(--muted); font-size: 12px; }
 .status { font-size: 12px; color: var(--accent); margin-top: 6px; }
 nav {
   position: sticky; top: 0; z-index: 2;
@@ -81,6 +90,12 @@ h3 { font-size: 15px; margin: 22px 0 8px; }
 .wx { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; padding: 12px 14px; }
 .wx-main { font-size: 17px; font-weight: 600; }
 .wx-sub { color: var(--muted); font-size: 13px; }
+.wx-main { font-size: 20px; }
+.wx-pop { font-size: 15px; font-weight: 600; color: var(--rain); }
+.day-head { margin: 4px 0 12px; }
+.day-date { color: var(--muted); font-size: 13px; }
+.day-head h2 { margin: 2px 0 0; display: flex; align-items: center; gap: 8px; font-size: 22px; }
+.point { font-size: 13px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
 .wx-actions { display: flex; gap: 8px; margin-top: 10px; grid-column: 1 / -1; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -93,8 +108,9 @@ h3 { font-size: 15px; margin: 22px 0 8px; }
 .btn:disabled { opacity: .6; }
 .rain { margin-top: 10px; padding: 10px 12px; border-radius: 10px; background: var(--rain-soft); color: var(--rain); font-size: 14px; }
 .rain.hot { font-weight: 600; }
+.rain b { display: block; margin-bottom: 2px; }
 ol.stops { list-style: none; margin: 0; padding: 0; }
-.stop { display: grid; grid-template-columns: 52px 1fr; gap: 0 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.stop { display: grid; grid-template-columns: 52px 1fr; gap: 0 10px; padding: 12px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 70px; }
 .stop:last-child { border-bottom: 0; }
 .time { color: var(--muted); font-size: 13px; padding-top: 2px; font-variant-numeric: tabular-nums; }
 .name { font-weight: 600; }
@@ -102,11 +118,19 @@ ol.stops { list-style: none; margin: 0; padding: 0; }
 .badge.rec { background: var(--accent-soft); color: var(--accent); }
 .badge.now { background: var(--now); color: #fff; }
 .note { color: var(--ink); font-size: 13px; margin-top: 2px; }
-.tip { color: var(--muted); font-size: 13px; margin-top: 4px; }
-.tip b { color: var(--tip); font-weight: 700; margin-right: 4px; }
+.tip { color: var(--muted); font-size: 13px; margin-top: 6px; padding-left: 10px; border-left: 2px solid var(--tip); }
+.tip div + div { margin-top: 2px; }
 .acts { display: flex; gap: 6px; margin-top: 8px; }
-.preview { margin-top: 8px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
-.preview iframe { display: block; width: 100%; height: 220px; border: 0; }
+#sheet { position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, .45); display: flex; align-items: flex-end; justify-content: center; }
+#sheet[hidden] { display: none; }
+.sheet-box {
+  width: 100%; max-width: 430px; height: 82vh; background: var(--bg);
+  border-radius: 16px 16px 0 0; display: flex; flex-direction: column; overflow: hidden;
+}
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; }
+.sheet-head b { font-size: 16px; }
+#sheet-map { flex: 1; }
+#sheet-map iframe { display: block; width: 100%; height: 100%; border: 0; }
 .stop.now {
   margin: 0 -14px; padding: 12px 14px;
   background: var(--now-soft); box-shadow: inset 4px 0 0 var(--now);
@@ -146,16 +170,25 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
 <body>
 <header>
   <h1>히로시마 10/15~19</h1>
-  <p class="flights" id="flights"></p>
+  <div class="flights" id="flights"></div>
   <div class="status" id="net"></div>
 </header>
 <nav id="tabs" role="tablist" aria-label="날짜"></nav>
 <main id="day"></main>
 <section id="extras"></section>
+<div id="sheet" hidden>
+  <div class="sheet-box" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-head"><b id="sheet-title"></b><button class="btn" type="button" id="sheet-close">닫기</button></div>
+    <div id="sheet-map"></div>
+  </div>
+</div>
 
 <script>
 (function () {
   'use strict';
+
+  // 브라우저가 이전 스크롤 위치를 복원하면 현재 일정으로 이동한 것이 덮어써짐
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
   // 구글 Maps Embed API 키 (무료, 사용량 제한 없음). 비어 있으면 미리보기 버튼을 숨김
   var MAPS_KEY = 'AIzaSyDDup-5gGTVGGjSezrrhFKJm9P1zGjD_T8';
@@ -164,7 +197,6 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
   var PICK_KEY = 'trip-pick-v1';
   var plan = null;
   var current = 0;
-  var openPreview = null;
 
   function el(tag, attrs, children) {
     var n = document.createElement(tag);
@@ -229,56 +261,76 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
     return 0;
   }
 
-  function embedUrl(kind, a, b, mode) {
-    var base = 'https://www.google.com/maps/embed/v1/';
-    if (kind === 'place') return base + 'place?key=' + MAPS_KEY + '&language=ko&q=place_id:' + a;
-    return base + 'directions?key=' + MAPS_KEY + '&language=ko&origin=place_id:' + a +
-      '&destination=place_id:' + b + '&mode=' + mode;
+  var EMBED = 'https://www.google.com/maps/embed/v1/';
+
+  function placeEmbed(pid) {
+    return EMBED + 'place?key=' + MAPS_KEY + '&language=ko&zoom=16&q=place_id:' + pid;
   }
 
-  // 저속망 대비 미리보기는 눌렀을 때만 불러오고, 한 번에 하나만 열어 둠
-  function togglePreview(btn, host, src) {
-    if (openPreview && openPreview.host === host) {
-      host.textContent = '';
-      btn.setAttribute('aria-pressed', 'false');
-      openPreview = null;
-      return;
-    }
-    if (openPreview) {
-      openPreview.host.textContent = '';
-      openPreview.btn.setAttribute('aria-pressed', 'false');
-    }
-    host.appendChild(el('div', { class: 'preview' }, [
-      el('iframe', { src: src, loading: 'lazy', referrerpolicy: 'no-referrer-when-downgrade', title: '지도 미리보기' })
-    ]));
-    btn.setAttribute('aria-pressed', 'true');
-    openPreview = { host: host, btn: btn };
+  function dirEmbed(from, to, mode, via) {
+    var u = EMBED + 'directions?key=' + MAPS_KEY + '&language=ko&origin=place_id:' + from +
+      '&destination=place_id:' + to + '&mode=' + mode;
+    if (via && via.length) u += '&waypoints=' + via.map(function (v) { return 'place_id:' + v.pid; }).join('|');
+    return u;
   }
 
-  function actions(mapUrl, embed) {
-    var host = el('div');
+  // 작은 지도는 글자가 안 보여서 화면 대부분을 덮는 시트로 띄우고, 저속망 대비 누를 때만 불러옴
+  function showPreview(title, src) {
+    var sheet = document.getElementById('sheet');
+    document.getElementById('sheet-title').textContent = title;
+    var frame = document.getElementById('sheet-map');
+    frame.textContent = '';
+    frame.appendChild(el('iframe', { src: src, referrerpolicy: 'no-referrer-when-downgrade', title: title + ' 지도' }));
+    sheet.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
+  function hidePreview() {
+    document.getElementById('sheet').hidden = true;
+    document.getElementById('sheet-map').textContent = '';
+    document.body.style.overflow = '';
+  }
+
+  function actions(title, mapUrl, embed) {
     var row = el('div', { class: 'acts' });
     if (mapUrl) row.appendChild(el('a', { class: 'btn', href: mapUrl, target: '_blank', rel: 'noopener', text: '구글 지도' }));
     if (MAPS_KEY && embed) {
-      var b = el('button', { class: 'btn', type: 'button', 'aria-pressed': 'false', text: '미리보기' });
-      b.addEventListener('click', function () { togglePreview(b, host, embed); });
+      var b = el('button', { class: 'btn', type: 'button', text: '미리보기' });
+      b.addEventListener('click', function () { showPreview(title, embed); });
       row.appendChild(b);
     }
-    return row.childNodes.length ? [row, host] : [];
+    return row.childNodes.length ? [row] : [];
+  }
+
+  // 링크는 place_id 로 만들고, query 는 place_id 를 못 찾을 때만 쓰이는 대체값
+  function mapLink(s) {
+    if (!s.pid) return null;
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(s.q || s.name) + '&query_place_id=' + s.pid;
+  }
+
+  function routeLink(r) {
+    return 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(r.fromName) + '&origin_place_id=' + r.from +
+      '&destination=' + encodeURIComponent(r.toName) + '&destination_place_id=' + r.to + '&travelmode=' + r.mode;
+  }
+
+  // 여러 정보가 한 줄에 몰리면 읽기 어려워서 문장 단위로 줄을 나눔
+  function lines(cls, text) {
+    return el('div', { class: cls }, text.split(/\.\s+/).map(function (t) {
+      return el('div', { text: t.replace(/\.$/, '') });
+    }));
+  }
+
+  function details(box, s) {
+    if (s.note) box.appendChild(lines('note', s.note));
+    if (s.tip) box.appendChild(lines('tip', s.tip));
+    actions(s.name, mapLink(s), s.pid ? placeEmbed(s.pid) : null).forEach(function (n) { box.appendChild(n); });
   }
 
   function placeBody(s) {
     var name = el('div', { class: 'name', text: s.name });
-    if (s.saved === false && s.url) name.appendChild(el('span', { class: 'badge rec', text: '추천' }));
+    if (s.rec) name.appendChild(el('span', { class: 'badge rec', text: '추천' }));
     var body = el('div', null, [name]);
-    if (s.note) body.appendChild(el('div', { class: 'note', text: s.note }));
-    if (s.tip) {
-      var tip = el('div', { class: 'tip' });
-      tip.appendChild(el('b', { text: '팁' }));
-      tip.appendChild(document.createTextNode(s.tip));
-      body.appendChild(tip);
-    }
-    actions(s.url, s.pid ? embedUrl('place', s.pid) : null).forEach(function (n) { body.appendChild(n); });
+    details(body, s);
     return body;
   }
 
@@ -311,29 +363,34 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
         renderDay(current, true);
       });
       var opt = el('div', { class: 'opt' + (on ? ' on' : '') }, [pick]);
-      if (o.note) opt.appendChild(el('div', { class: 'note', text: o.note }));
-      if (o.tip) {
-        var tip = el('div', { class: 'tip' });
-        tip.appendChild(el('b', { text: '팁' }));
-        tip.appendChild(document.createTextNode(o.tip));
-        opt.appendChild(tip);
-      }
-      actions(o.url, o.pid ? embedUrl('place', o.pid) : null).forEach(function (n) { opt.appendChild(n); });
+      details(opt, o);
       box.appendChild(opt);
     });
 
     var body = el('div', null, [head]);
-    if (c.note) body.appendChild(el('div', { class: 'note', text: c.note }));
+    if (c.note) body.appendChild(lines('note', c.note));
     body.appendChild(box);
     return body;
   }
 
+  // 러닝은 숙소에서 출발해 숙소로 돌아오는 순환 코스라 경유지를 waypoints 로 넘김
+  function runBody(r) {
+    var body = el('div', null, [el('div', { class: 'name', text: r.name })]);
+    if (r.tip) body.appendChild(lines('tip', r.tip));
+    var url = 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(r.homeName) + '&origin_place_id=' + r.home +
+      '&destination=' + encodeURIComponent(r.homeName) + '&destination_place_id=' + r.home + '&travelmode=walking' +
+      '&waypoints=' + encodeURIComponent(r.via.map(function (v) { return v.name; }).join('|')) +
+      '&waypoint_place_ids=' + r.via.map(function (v) { return v.pid; }).join('|');
+    actions(r.name, url, dirEmbed(r.home, r.home, 'walking', r.via)).forEach(function (n) { body.appendChild(n); });
+    return body;
+  }
+
   function item(s, di, si) {
-    var li = el('li', { class: 'stop', 'data-min': toMin(s.time) == null ? '' : String(toMin(s.time)) }, [
+    var body = s.type === 'choice' ? choiceBody(s, di, si) : s.type === 'run' ? runBody(s) : placeBody(s);
+    return el('li', { class: 'stop', 'data-min': toMin(s.time) == null ? '' : String(toMin(s.time)) }, [
       el('div', { class: 'time', text: s.time || '' }),
-      s.type === 'choice' ? choiceBody(s, di, si) : placeBody(s)
+      body
     ]);
-    return li;
   }
 
   // 오늘 탭에서 이미 시작된 일정 중 가장 최근 것을 현재 일정으로 표시
@@ -349,7 +406,10 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
       var m = r.getAttribute('data-min');
       if (day.date === now.date && m !== '' && Number(m) <= now.min) hit = r;
     });
-    if (!hit) return;
+    if (!hit) {
+      if (scroll) window.scrollTo(0, 0);
+      return;
+    }
     hit.classList.add('now');
     var t = hit.querySelector('.time');
     t.appendChild(el('div', { class: 'badge now', text: '지금' }));
@@ -363,24 +423,23 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
     var card = el('div', { class: 'card wx' });
 
     if (d) {
-      card.appendChild(el('div', { class: 'wx-main', text: loc.name + ', ' + wmo(d.code) + ', ' + Math.round(d.max) + '° / ' + Math.round(d.min) + '°' }));
-      card.appendChild(el('div', { class: 'wx-sub', text: '강수 ' + (d.pop == null ? '-' : d.pop + '%') }));
-      card.appendChild(el('div', { class: 'wx-sub', style: 'grid-column:1/-1', text: '갱신 ' + fmtTime(wx.updatedAt) }));
+      card.appendChild(el('div', { class: 'wx-main', text: wmo(d.code) + '  ' + Math.round(d.max) + '° / ' + Math.round(d.min) + '°' }));
+      card.appendChild(el('div', { class: 'wx-pop', text: '강수 ' + (d.pop == null ? '-' : d.pop + '%') }));
+      card.appendChild(el('div', { class: 'wx-sub', style: 'grid-column:1/-1', text: loc.name + ' 예보, ' + fmtTime(wx.updatedAt) + ' 갱신' }));
     } else {
-      card.appendChild(el('div', { class: 'wx-main', text: loc.name + ' 날씨 정보 없음' }));
+      card.appendChild(el('div', { class: 'wx-main', style: 'grid-column:1/-1', text: loc.name + ' 날씨 정보 없음' }));
       card.appendChild(el('div', { class: 'wx-sub', style: 'grid-column:1/-1', text: '아래 버튼으로 갱신' }));
     }
 
     var btn = el('button', { class: 'btn primary', type: 'button', text: '날씨 갱신' });
     btn.addEventListener('click', function () { refreshWeather(btn, card); });
-    card.appendChild(el('div', { class: 'wx-actions' }, [
-      btn,
-      el('a', { class: 'btn', href: loc.accu, target: '_blank', rel: 'noopener', text: 'AccuWeather' })
-    ]));
+    card.appendChild(el('div', { class: 'wx-actions' }, [btn]));
 
     var rainy = d && d.pop != null && d.pop >= plan.rainThreshold;
-    var rain = el('div', { class: 'rain' + (rainy ? ' hot' : '') });
-    rain.textContent = (rainy ? '비 예보, 우천 동선으로: ' : '비 오면: ') + day.rain;
+    var rain = el('div', { class: 'rain' + (rainy ? ' hot' : '') }, [
+      el('b', { text: rainy ? '비 예보, 우천 동선으로' : '비 오면' }),
+      lines('', day.rain)
+    ]);
     return [card, rain];
   }
 
@@ -429,7 +488,6 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
   function renderDay(i, keepScroll) {
     var y = window.scrollY;
     current = i;
-    openPreview = null;
     var day = plan.days[i];
     Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (b, j) {
       b.setAttribute('aria-selected', j === i ? 'true' : 'false');
@@ -437,7 +495,12 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
 
     var main = document.getElementById('day');
     main.textContent = '';
-    main.appendChild(el('h2', { text: day.label + ' ' + day.title }));
+    var head = el('div', { class: 'day-head' }, [
+      el('div', { class: 'day-date', text: day.full }),
+      el('h2', { text: day.title })
+    ]);
+    if (day.point) head.lastChild.appendChild(el('span', { class: 'point', text: day.point }));
+    main.appendChild(head);
     weatherCard(day).forEach(function (n) { main.appendChild(n); });
 
     main.appendChild(el('h3', { text: '동선' }));
@@ -457,7 +520,7 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
       main.appendChild(el('h3', { text: '길찾기' }));
       main.appendChild(el('div', { class: 'routes' }, day.routes.map(function (r) {
         var box = el('div', { class: 'route' }, [el('div', { class: 'name', text: r.label })]);
-        actions(r.url, embedUrl('dir', r.from, r.to, r.mode)).forEach(function (n) { box.appendChild(n); });
+        actions(r.label, routeLink(r), dirEmbed(r.from, r.to, r.mode)).forEach(function (n) { box.appendChild(n); });
         return box;
       })));
     }
@@ -483,7 +546,16 @@ summary { cursor: pointer; padding: 10px 0; font-weight: 600; }
 
   function init(p) {
     plan = p;
-    document.getElementById('flights').textContent = '가는 편 ' + plan.flights.in + '. 오는 편 ' + plan.flights.out;
+    var fl = document.getElementById('flights');
+    plan.flights.forEach(function (f) {
+      fl.appendChild(el('div', { class: 'flight' }, [
+        el('div', { class: 'fl' }, [el('b', { text: f.label }), document.createTextNode(f.date)]),
+        el('div', { class: 'leg' }, [el('span', { text: '출발' }), document.createTextNode(f.dep)]),
+        el('div', { class: 'leg' }, [el('span', { text: '도착' }), document.createTextNode(f.arr)])
+      ]));
+    });
+    document.getElementById('sheet-close').addEventListener('click', hidePreview);
+    document.getElementById('sheet').addEventListener('click', function (e) { if (e.target.id === 'sheet') hidePreview(); });
     var tabs = document.getElementById('tabs');
     plan.days.forEach(function (d, i) {
       var b = el('button', { type: 'button', role: 'tab', text: d.label });
