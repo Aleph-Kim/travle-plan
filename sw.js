@@ -1,5 +1,5 @@
 // 일정이나 화면 파일이 바뀌면 이 값을 올려야 기존 캐시가 교체됨
-const CACHE = 'trip-v13';
+const CACHE = 'trip-v14';
 const WEATHER = 'https://raw.githubusercontent.com/Aleph-Kim/travle-plan/main/data/weather.json';
 const ASSETS = ['./', './index.html', './config.js', './data/plan.json', './manifest.webmanifest', './icon.svg',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
