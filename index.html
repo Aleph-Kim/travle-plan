@@ -24,6 +24,11 @@
 <link rel="preload" href="data/plan.json" as="fetch" crossorigin>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="히로시마">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <style>
 :root {
   --bg: #f5f5f7;
@@ -100,6 +105,7 @@ a { color: var(--blue); text-decoration: none; }
 .bar.stuck { border-bottom-color: var(--sep); }
 .bar-title { height: 0; overflow: hidden; text-align: center; font-weight: 600; font-size: 15px; opacity: 0; transition: opacity .25s, height .25s var(--ease); }
 .bar.stuck .bar-title { height: 22px; opacity: 1; margin-bottom: 6px; }
+.bar.snap .bar-title { transition: none; }
 .seg { position: relative; display: flex; background: var(--fill); border-radius: 10px; padding: 2px; }
 .seg button {
   position: relative; z-index: 1; flex: 1; border: 0; background: none; padding: 7px 0; font-size: 13px; font-weight: 500;
@@ -711,6 +717,15 @@ a { color: var(--blue); text-decoration: none; }
     if (scroll) cur.scrollIntoView({ block: 'center' });
   }
 
+  // 고정된 날짜 바는 붙은 상태에서 offsetTop 이 스크롤 값과 같아져 기준이 될 수 없어서, 날짜 본문 위치에서 바 높이만큼 뺀 곳으로 이동
+  function toDayTop() {
+    var bar = document.getElementById('bar'), day = document.getElementById('day');
+    // 이동 후에는 바가 붙어 제목 줄만큼 높아지므로, 그 높이를 애니메이션 없이 먼저 적용하고 계산
+    bar.classList.add('snap', 'stuck');
+    window.scrollTo(0, Math.max(0, day.getBoundingClientRect().top + window.scrollY - bar.offsetHeight));
+    requestAnimationFrame(function () { bar.classList.remove('snap'); });
+  }
+
   function todayIndex() {
     var d = jstNow().date;
     for (var i = 0; i < plan.days.length; i++) if (plan.days[i].date === d) return i;
@@ -755,8 +770,7 @@ a { color: var(--blue); text-decoration: none; }
       b.addEventListener('click', function () {
         if (i === current) return;
         renderDay(i, i > current ? 1 : -1);
-        var top = document.getElementById('bar').offsetTop;
-        if (window.scrollY > top) window.scrollTo(0, top);
+        toDayTop();
       });
       tabs.appendChild(b);
     });
@@ -785,7 +799,7 @@ a { color: var(--blue); text-decoration: none; }
       b.addEventListener('click', function () {
         closeSheet(document.getElementById('rain-sheet'));
         renderDay(plan.days.indexOf(d), 1);
-        window.scrollTo(0, document.getElementById('bar').offsetTop);
+        toDayTop();
       });
       box.appendChild(b);
     });
