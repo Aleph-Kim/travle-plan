@@ -50,23 +50,54 @@ for key, loc in PLAN["locations"].items():
     }
 
 prev = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
-prev_rain = prev.get("rain", {})
+prev_rain, prev_plan = prev.get("rain", {}), prev.get("plan", {})
 today = datetime.now(ZoneInfo("Asia/Tokyo")).date().isoformat()
+by_date = {d["date"]: d for d in days}
 
-# 당일과 지난 날짜는 한 번 정해진 판정을 유지해야 여행 중 일정이 갑자기 바뀌지 않음
+
+def rainy(date, key):
+    w = data.get(by_date[date]["plans"][key]["weather"], {}).get(date)
+    return bool(w and w["pop"] is not None and w["pop"] >= PLAN["rainThreshold"])
+
+
+# 당일과 지난 날짜는 한 번 정해진 일정과 비 판정을 유지해야 여행 중 일정이 갑자기 바뀌지 않음
+locked = {d: prev_plan.get(d, by_date[d]["default"]) for d in by_date if d <= today}
+default = {d: by_date[d]["default"] for d in by_date}
+
+# 비 오는 날 미야지마나 오노미치를 시내 일정과 맞바꿈. 둘 다 비면 미야지마를 우선해 맑은 날로 보냄
+WEIGHT = {"miyajima": 4, "onomichi": 2, "city": 0}
+candidates = [dict(default)]
+city_date = next((d for d, k in default.items() if k == "city"), None)
+if city_date:
+    for d, k in default.items():
+        if k in ("miyajima", "onomichi"):
+            c = dict(default)
+            c[d], c[city_date] = "city", k
+            candidates.append(c)
+
+
+def cost(c):
+    total = 0.0
+    for d, k in c.items():
+        if d in locked:
+            continue
+        total += WEIGHT.get(k, 0) * rainy(d, k) + (0.5 if k != default[d] else 0)
+    return total
+
+
+valid = [c for c in candidates if all(c[d] == k for d, k in locked.items())] or [dict(default, **locked)]
+assign = min(valid, key=cost)
+
 rain = {}
-for day in days:
-    date = day["date"]
-    if date <= today and date in prev_rain:
-        rain[date] = prev_rain[date]
-        continue
-    w = data.get(day["weather"], {}).get(date)
-    rain[date] = bool(w and w["pop"] is not None and w["pop"] >= PLAN["rainThreshold"])
+for date, key in assign.items():
+    rain[date] = prev_rain[date] if date in locked and date in prev_rain else rainy(date, key)
 
 out = {
     "updatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     "data": data,
+    "plan": assign,
     "rain": rain,
 }
 OUT.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+print("plan:", assign)
 print("rain:", rain)

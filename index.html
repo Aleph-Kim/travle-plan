@@ -447,15 +447,29 @@ a { color: var(--blue); text-decoration: none; }
   function dayWeather(day) {
     return (weather && weather.data && weather.data[day.weather] && weather.data[day.weather][day.date]) || null;
   }
-  // 비 판정은 1시간마다 도는 GitHub Actions 가 정하고, 당일과 지난 날짜는 그 시점 판정으로 고정됨
+  // 날짜 맞바꿈(plan)과 비 판정(rain)은 매시간 날씨 작업이 정하고, 당일과 지난 날짜는 그 시점 값으로 고정됨
   function isRainy(day) { return !!(weather && weather.rain && weather.rain[day.date]); }
+  function planKey(day) {
+    var k = weather && weather.plan && weather.plan[day.date];
+    return k && day.plans[k] ? k : day.default;
+  }
+  function itemsOf(ids) { return ids.map(function (i) { return plan.items[i]; }); }
+  function idOf(s) { return s.pid || s.title || s.name; }
 
-  // 비 예보면 rs 표시된 일정은 빠지고, 공유 날씨 파일이 바뀌면 모든 접속자에게 같이 반영
-  function effectiveStops(day) {
-    var rainy = isRainy(day);
-    var keep = [], skipped = [];
-    day.stops.forEach(function (s) { (rainy && s.rs ? skipped : keep).push(s); });
-    return { keep: keep, skipped: skipped, rainy: rainy };
+  // 그날 실제로 보여줄 일정. 비 오는 날은 일정 전체가 비 버전으로 바뀌고, 빠진 장소를 따로 모아 안내에 씀
+  function view(day) {
+    var key = planKey(day), pl = day.plans[key], rainy = isRainy(day);
+    var stops = itemsOf(rainy ? pl.rain : pl.sun);
+    var kept = stops.map(idOf);
+    var skipped = rainy ? itemsOf(pl.sun).filter(function (s) { return s.type !== 'move' && kept.indexOf(idOf(s)) === -1; }) : [];
+    var origin = null;
+    if (key !== day.default) plan.days.forEach(function (d) { if (d.default === key) origin = d; });
+    return {
+      date: day.date, label: day.label, full: day.full, key: key, rainy: rainy,
+      title: pl.title, point: rainy && pl.rainPoint ? pl.rainPoint : pl.point, weather: pl.weather,
+      towel: pl.towel, rainNote: pl.rainNote, stops: stops, skipped: skipped,
+      swapped: key !== day.default, defaultTitle: day.plans[day.default].title, origin: origin
+    };
   }
 
   function dayCost(stops) {
@@ -838,11 +852,10 @@ a { color: var(--blue); text-decoration: none; }
   function renderDay(i, dir, keepScroll) {
     var y = window.scrollY;
     current = i;
-    var day = plan.days[i];
+    var day = view(plan.days[i]);
     moveTabs(i);
     document.getElementById('bar-title').textContent = day.label + ' ' + day.title;
 
-    var eff = effectiveStops(day);
     var main = document.getElementById('day');
     main.textContent = '';
 
@@ -850,22 +863,26 @@ a { color: var(--blue); text-decoration: none; }
     if (day.point) hero.appendChild(el('span', { class: 'point', text: day.point }));
     main.appendChild(hero);
 
-    var num = el('div', { class: 'v', 'data-count': String(dayCost(eff.keep)) }, ['0', el('small', { text: '엔' })]);
+    var num = el('div', { class: 'v', 'data-count': String(dayCost(day.stops)) }, ['0', el('small', { text: '엔' })]);
     main.appendChild(el('div', { class: 'stats' }, [
       el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: '교통과 입장료' }), num, el('div', { class: 's', text: '식비 제외' })]),
-      el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: '노천탕' }), el('div', { class: 'v txt', text: onsenName(eff.keep) }), el('div', { class: 's', text: '하루 한 번' })])
+      el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: '노천탕' }), el('div', { class: 'v txt', text: onsenName(day.stops) }), el('div', { class: 's', text: '하루 한 번' })])
     ]));
 
     main.appendChild(weatherCard(day));
-    if (eff.rainy) {
-      var rainBox = el('div', null, [lines('', day.rain)]);
-      if (eff.skipped.length) rainBox.appendChild(el('ul', null, eff.skipped.map(function (s) { return el('li', { text: '빠진 일정: ' + s.name }); })));
+    if (day.swapped) {
+      main.appendChild(notice('rain', ICON.rain, '날씨에 맞춰 날짜를 바꿨습니다', lines('',
+        '원래 이 날은 ' + day.defaultTitle + ' 일정. 비 예보 때문에 ' + (day.origin ? day.origin.label + '의 ' : '') + day.title + ' 일정과 맞바꿈')));
+    }
+    if (day.rainy) {
+      var rainBox = el('div', null, [lines('', day.rainNote)]);
+      if (day.skipped.length) rainBox.appendChild(el('ul', null, day.skipped.map(function (s) { return el('li', { text: '빠진 일정: ' + (s.name || s.title) }); })));
       main.appendChild(notice('rain', ICON.rain, '비 예보로 일정이 바뀌었습니다', rainBox));
     }
     if (day.towel) main.appendChild(notice('towel', ICON.towel, '수건 챙기기', lines('', day.towel)));
 
     main.appendChild(el('div', { class: 'sec', text: '일정' }));
-    main.appendChild(el('ol', { class: 'tl' }, eff.keep.map(function (s) { return item(s, day.date + ':' + day.stops.indexOf(s)); })));
+    main.appendChild(el('ol', { class: 'tl' }, day.stops.map(function (s) { return item(s, day.date + ':' + day.key + ':' + (s.title || s.name)); })));
     main.appendChild(el('p', { class: 'foot', text: plan.onsenTip + '. ' + plan.ratingNote }));
 
     if (dir && motionOn() && main.animate) {
@@ -976,24 +993,26 @@ a { color: var(--blue); text-decoration: none; }
     loadWeather().then(function () { renderDay(current, 0, true); rainModal(); }).catch(function () {});
   }
 
-  // 오늘 이후 일정이 비 때문에 바뀌었으면 처음 볼 때 한 번 안내 (같은 변경은 다시 띄우지 않음)
+  // 오늘 이후 일정이 날씨 때문에 바뀌었으면 처음 볼 때 한 번 안내 (같은 변경은 다시 띄우지 않음)
   function rainModal() {
     var today = jstNow().date;
-    var changed = plan.days.filter(function (d) { return d.date > today && isRainy(d); });
+    var changed = plan.days.map(view).filter(function (v) { return v.date > today && (v.swapped || v.rainy); });
     if (!changed.length) return;
-    var sig = changed.map(function (d) { return d.date; }).join(',');
+    var sig = changed.map(function (v) { return v.date + v.key + (v.rainy ? 'r' : ''); }).join(',');
     if (load(RAIN_SEEN_KEY) === sig) return;
     var box = document.getElementById('rain-body');
     box.textContent = '';
-    changed.forEach(function (d) {
-      var sk = d.stops.filter(function (s) { return s.rs; }).map(function (s) { return s.name; });
+    changed.forEach(function (v) {
+      var parts = [];
+      if (v.swapped) parts.push('원래 ' + v.defaultTitle + ' 일정에서 ' + v.title + ' 일정으로 바뀜');
+      if (v.rainy) parts.push(v.skipped.length ? '비 예보로 빠지는 일정: ' + v.skipped.map(function (s) { return s.name || s.title; }).join(', ') : v.rainNote);
       var b = el('button', { class: 'rain-day', type: 'button' }, [
-        el('b', { text: d.label + ' ' + d.title }),
-        el('span', { text: sk.length ? '빠지는 일정: ' + sk.join(', ') : d.rain })
+        el('b', { text: v.label + ' ' + v.title }),
+        el('span', { text: parts.join('. ') })
       ]);
       b.addEventListener('click', function () {
         closeSheet(document.getElementById('rain-sheet'));
-        renderDay(plan.days.indexOf(d), 1);
+        renderDay(plan.days.findIndex(function (d) { return d.date === v.date; }), 1);
         toDayTop();
       });
       box.appendChild(b);
