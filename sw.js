@@ -1,8 +1,7 @@
 // 일정이나 화면 파일이 바뀌면 이 값을 올려야 기존 캐시가 교체됨
-const CACHE = 'trip-v14';
+const CACHE = 'trip-v15';
 const WEATHER = 'https://raw.githubusercontent.com/Aleph-Kim/travle-plan/main/data/weather.json';
-const ASSETS = ['./', './index.html', './config.js', './data/plan.json', './manifest.webmanifest', './icon.svg',
-  './icon-180.png', './icon-192.png', './icon-512.png', './icon-maskable-512.png'];
+const ASSETS = ['./', './index.html', './config.js', './data/plan.json', './manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   // 브라우저 HTTP 캐시에 남은 이전 파일이 새 캐시에 들어가지 않도록 서버에서 다시 받음
@@ -35,6 +34,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (url.origin !== self.location.origin) return;
+  // 홈 화면 아이콘은 OS가 직접 받아가므로 서비스 워커가 가로채지 않음 (잘 되는 onochu 구성과 동일하게)
+  if (/\/icon[^/]*\.(png|svg)$/.test(url.pathname)) return;
 
   // 저속망 대비 캐시를 먼저 보여주고 뒤에서 갱신
   event.respondWith(
