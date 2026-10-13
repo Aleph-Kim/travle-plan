@@ -21,7 +21,6 @@
 <meta name="twitter:description" content="히로시마, 미야지마, 오노미치 4박 5일 일정. 날씨와 지도, 식당 평점과 후기 정리">
 <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<link rel="preload" href="data/plan.json" as="fetch" crossorigin>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="https://aleph-kim.github.io/travle-plan/icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://aleph-kim.github.io/travle-plan/icon-180.png">
@@ -141,11 +140,6 @@ a { color: var(--blue); text-decoration: none; }
 .notice.rain svg { color: var(--blue); }
 .notice ul { margin: 4px 0 0; padding-left: 18px; }
 
-.wx { margin-top: 12px; background: var(--card); border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }
-.wx-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-.wx-cond { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
-.wx-pop { font-weight: 700; color: var(--blue); white-space: nowrap; }
-.wx-meta { font-size: 13px; color: var(--ink2); margin-top: 2px; }
 
 .sec { margin: 26px 4px 10px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
 
@@ -265,30 +259,52 @@ a { color: var(--blue); text-decoration: none; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; }
 .panel-head b { font-size: 17px; }
 #map-frame { height: 74vh; }
+.wx { margin-top: 12px; border-radius: 18px; padding: 16px; box-shadow: var(--shadow); }
+.wx-sky { color: #fff; background: linear-gradient(165deg, #2c6bd3, #5ea6f2); }
+.wx-sky.cloud { background: linear-gradient(165deg, #56688a, #8a9cb6); }
+.wx-sky.rain { background: linear-gradient(165deg, #2e3c5c, #56688a); }
+.wx-sky.night { background: linear-gradient(165deg, #141b45, #2d3a78); }
 .wx.tap { cursor: pointer; }
 .wx.tap:active { transform: scale(.985); }
 .motion .wx.tap { transition: transform .2s var(--ease); }
-.wx-meta { display: flex; justify-content: space-between; gap: 8px; }
-.wx-more { color: var(--blue); font-weight: 600; white-space: nowrap; }
+.wx-hero { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; }
+.wx-ic { display: block; width: 56px; height: 56px; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .18)); }
+.wx-ic svg { width: 100%; height: 100%; display: block; }
+.wx-t b { display: block; font-size: 44px; font-weight: 300; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.wx-t span { font-size: 13px; opacity: .85; }
+.wx-hl { display: flex; flex-direction: column; gap: 2px; font-size: 14px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.wx-hl .hi::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #FFB347; }
+.wx-hl .lo::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 50%; background: #7CC8FF; }
+.wx-hero.big .wx-ic { width: 76px; height: 76px; }
+.wx-hero.big .wx-t b { font-size: 60px; }
+.wx-line { margin-top: 10px; font-size: 15px; font-weight: 600; }
+.wx-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 14px; padding-top: 12px; border-top: .5px solid rgba(255, 255, 255, .25); text-align: center; }
+.wx-m i { display: block; width: 24px; height: 24px; margin: 0 auto 4px; color: #fff; }
+.wx-m i svg { width: 100%; height: 100%; display: block; }
+.wx-m b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wx-m span { font-size: 11px; opacity: .8; }
+.wx-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: 12px; opacity: .85; }
+.wx-more { font-weight: 700; opacity: 1; }
+.wx-more::after { content: ' ›'; }
 #wx-body { overflow-y: auto; min-height: 0; flex: 1; padding: 0 16px 16px; -webkit-overflow-scrolling: touch; }
-.wxd-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 4px 0 12px; }
-.wxd-cond { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
-.wxd-temp { font-size: 15px; color: var(--ink2); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.wxd-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.wxd-tile { background: var(--card); border-radius: 12px; padding: 10px 12px; }
-.wxd-tile span { display: block; font-size: 12px; color: var(--ink2); }
-.wxd-tile b { font-size: 17px; font-variant-numeric: tabular-nums; }
-.wxd-sec { margin: 18px 2px 8px; font-size: 17px; font-weight: 700; }
-.wxd-table { background: var(--card); border-radius: 12px; overflow: clip; }
-.wxd-row { display: grid; grid-template-columns: 32px 1fr 32px 32px 58px 28px 34px; gap: 4px; padding: 9px 10px; font-size: 13px;
-  font-variant-numeric: tabular-nums; align-items: center; }
-.wxd-row + .wxd-row { border-top: .5px solid var(--sep); }
-.wxd-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wxd-row .b { font-weight: 600; }
-.wxd-row.wet .p { color: var(--blue); font-weight: 600; }
-.wxd-row.now { background: var(--fill); }
-.wxd-th { position: sticky; top: 0; background: var(--card); color: var(--ink2); font-size: 12px; z-index: 1; }
-.wxd-note { font-size: 12px; color: var(--ink3); margin: 8px 2px 0; }
+#wx-body .wx-sky { border-radius: 18px; padding: 18px 16px; }
+.wx-panel { margin-top: 10px; border-radius: 18px; padding: 12px 0 10px; background: #141b38; color: #fff; }
+.wx-seg { display: flex; margin: 0 12px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .08); }
+.wx-seg button { flex: 1; border: 0; background: none; color: rgba(255, 255, 255, .6); font-size: 14px; font-weight: 600; padding: 7px 0; border-radius: 9px; cursor: pointer; }
+.wx-seg button[aria-selected="true"] { background: #fff; color: #141b38; }
+.motion .wx-seg button { transition: background .25s var(--ease), color .25s var(--ease); }
+.wx-day { margin: 12px 16px 4px; font-size: 12px; opacity: .7; }
+.wx-strip { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.wx-strip::-webkit-scrollbar { display: none; }
+.wx-hsvg { display: block; }
+.wx-hsvg text { fill: #fff; text-anchor: middle; font-size: 12px; font-family: inherit; }
+.wx-hsvg text.t { fill: rgba(255, 255, 255, .75); font-size: 11px; }
+.wx-hsvg text.v { font-size: 14px; font-weight: 600; }
+.wx-hsvg text.p { fill: #8FB8E8; font-size: 11px; font-weight: 600; }
+.wx-hsvg text.p.wet { fill: #5AB4FF; }
+.wx-note { margin: 6px 16px 0; font-size: 11px; opacity: .6; }
+.wx-empty { margin: 12px 16px; font-size: 13px; opacity: .8; }
+.wx-upd { margin: 10px 4px 0; font-size: 12px; color: var(--ink3); }
 #map-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 .set { margin: 4px 16px 24px; background: var(--card); border-radius: 12px; }
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; }
@@ -321,7 +337,7 @@ a { color: var(--blue); text-decoration: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
   </button>
 </header>
-<div class="offline" id="net" hidden>오프라인. 저장된 일정을 표시 중</div>
+<div class="offline" id="net" hidden>오프라인. 네트워크에 연결되면 최신 일정과 날씨를 불러옵니다</div>
 <section class="group" id="flights"></section>
 <nav class="bar" id="bar">
   <div class="bar-title" id="bar-title"></div>
@@ -619,6 +635,100 @@ a { color: var(--blue); text-decoration: none; }
 
   function num(v, unit, digits) { return v == null ? '-' : (digits ? v.toFixed(digits) : Math.round(v)) + unit; }
 
+  // 날씨 아이콘은 색으로 바로 구분되도록 해, 달, 구름, 빗방울을 조합해 그림 (viewBox 64)
+  var SUN = '<g fill="#FFC531"><circle cx="32" cy="32" r="11"/><g stroke="#FFC531" stroke-width="4" stroke-linecap="round">' +
+    '<path d="M32 9v6M32 49v6M9 32h6M49 32h6M15.7 15.7l4.2 4.2M44.1 44.1l4.2 4.2M15.7 48.3l4.2-4.2M44.1 19.9l4.2-4.2"/></g></g>';
+  var MOON = '<path fill="#FFD25E" d="M38 10a22 22 0 1 0 16 36A18 18 0 1 1 38 10z"/>';
+  var CLOUD = function (fill, x, y, sc) {
+    return '<g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')"><path fill="' + fill + '" d="M18 46h30a11 11 0 0 0 0-22 15 15 0 0 0-28.6 3.5A9.5 9.5 0 0 0 18 46z"/></g>';
+  };
+  function wxIcon(code, night) {
+    var orb = night ? MOON : SUN, small = '<g transform="translate(-6 -8) scale(.78)">' + orb + '</g>';
+    var drops = '<g stroke="#5AB4FF" stroke-width="4" stroke-linecap="round"><path d="M22 52l-3 7M33 52l-3 7M44 52l-3 7"/></g>';
+    var body;
+    if (code === 0) body = orb;
+    else if (code === 1 || code === 2) body = small + CLOUD('#EEF3F8', 4, 6, .95);
+    else if (code === 3) body = CLOUD('#B9C4D2', -6, -4, .8) + CLOUD('#E3E9F0', 4, 6, .95);
+    else if (code === 45 || code === 48) body = '<g stroke="#C9D3DE" stroke-width="4" stroke-linecap="round"><path d="M12 24h40M8 34h44M14 44h38"/></g>';
+    else if (code >= 71 && code <= 77) body = CLOUD('#E3E9F0', 2, -4, .95) + '<g fill="#fff"><circle cx="22" cy="54" r="3"/><circle cx="34" cy="56" r="3"/><circle cx="46" cy="54" r="3"/></g>';
+    else if (code >= 95) body = CLOUD('#9AA8BA', 2, -6, .95) + '<path fill="#FFC531" d="M34 40l-8 13h7l-3 10 11-15h-7l4-8z"/>';
+    else if (code >= 51) body = CLOUD('#AEBBCB', 2, -6, .95) + drops;
+    else body = orb;
+    return '<svg viewBox="0 0 64 64" aria-hidden="true">' + body + '</svg>';
+  }
+  function sky(code) {
+    if (code >= 51) return 'rain';
+    if (code === 3 || code === 45 || code === 48) return 'cloud';
+    return 'clear';
+  }
+  // 여행 당일 밤에는 지금 시각 기준으로 밤하늘 색을 씀
+  function skyClass(day, w) { var v = heroValues(day, w); return v.night ? 'night' : sky(v.code); }
+  function uvLabel(v) { return v == null ? '' : v < 3 ? '낮음' : v < 6 ? '보통' : v < 8 ? '높음' : v < 11 ? '매우 높음' : '위험'; }
+  function hourNight(w, h) {
+    var rise = w.sunrise ? +w.sunrise.slice(0, 2) : 6, set = w.sunset ? +w.sunset.slice(0, 2) : 18;
+    return h < rise || h > set;
+  }
+  function avgHum(w) {
+    if (!w.hours || !w.hours.length) return null;
+    return w.hours.reduce(function (a, h) { return a + (h[7] || 0); }, 0) / w.hours.length;
+  }
+  // 여행 당일이면 지금 시각 값, 아니면 낮 최고 기온을 크게 보여줌
+  function heroValues(day, w) {
+    var now = jstNow();
+    if (day.date === now.date && w.hours && w.hours.length) {
+      var h = w.hours[Math.min(23, Math.floor(now.min / 60))];
+      return { big: h[1], sub: '지금, 체감 ' + num(h[2], '°'), code: h[5], night: hourNight(w, h[0]) };
+    }
+    return { big: w.max, sub: '낮 최고 기온', code: w.code, night: false };
+  }
+  var MICON = {
+    wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/></svg>',
+    hum: '<svg viewBox="0 0 24 24"><path fill="#7CC8FF" d="M12 3s7 7.6 7 12a7 7 0 0 1-14 0c0-4.4 7-12 7-12z"/></svg>',
+    pop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 18 0H3zM12 12v7a2 2 0 0 1-4 0M12 3V2"/></svg>',
+    uv: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#FFC531"/><path stroke="#FFC531" stroke-width="2" stroke-linecap="round" d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>'
+  };
+  function metrics(w) {
+    var items = [['wind', num(w.wind, 'm/s', 1), '최대 풍속'], ['hum', num(avgHum(w), '%'), '평균 습도'],
+      ['pop', num(w.pop, '%'), '강수 확률'], ['uv', w.uv == null ? '-' : w.uv.toFixed(1) + ' ' + uvLabel(w.uv), '자외선']];
+    return el('div', { class: 'wx-metrics' }, items.map(function (m) {
+      return el('div', { class: 'wx-m' }, [el('i', { html: MICON[m[0]] }), el('b', { text: m[1] }), el('span', { text: m[2] })]);
+    }));
+  }
+  function hero(day, w, big) {
+    var v = heroValues(day, w);
+    return el('div', { class: 'wx-hero' + (big ? ' big' : '') }, [
+      el('i', { class: 'wx-ic', html: wxIcon(v.code, v.night) }),
+      el('div', { class: 'wx-t' }, [el('b', { text: num(v.big, '°') }), el('span', { text: v.sub })]),
+      el('div', { class: 'wx-hl' }, [el('span', { class: 'hi', text: '최고 ' + num(w.max, '°') }), el('span', { class: 'lo', text: '최저 ' + num(w.min, '°') })])
+    ]);
+  }
+
+  // 시간별 그래프는 한 장의 SVG 로 그려 가로로 넘겨 봄 (탭에 따라 기온, 바람, 습도)
+  var WX_TAB = 'temp';
+  function hourlySvg(day, w, tab) {
+    var CW = 58, H = 176, n = w.hours.length, W = CW * n;
+    var idx = { temp: 1, wind: 6, hum: 7 }[tab], unit = { temp: '°', wind: '', hum: '%' }[tab];
+    var vals = w.hours.map(function (h) { return h[idx] == null ? 0 : h[idx]; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), span = hi - lo || 1;
+    var now = jstNow(), nowH = day.date === now.date ? Math.floor(now.min / 60) : -1;
+    var out = '<svg class="wx-hsvg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">';
+    var pts = [];
+    w.hours.forEach(function (h, i) {
+      var cx = i * CW + CW / 2, y = 150 - (vals[i] - lo) / span * 34;
+      pts.push(cx + ',' + y.toFixed(1));
+      var hh = h[0], label = hh === nowH ? '지금' : (hh < 12 ? '오전 ' : '오후 ') + (hh % 12 === 0 ? 12 : hh % 12) + '시';
+      if (hh === nowH) out += '<rect x="' + (i * CW + 3) + '" y="2" width="' + (CW - 6) + '" height="' + (H - 4) + '" rx="12" fill="rgba(255,255,255,.12)"/>';
+      out += '<text x="' + cx + '" y="18" class="t">' + label + '</text>';
+      out += '<svg x="' + (cx - 16) + '" y="28" width="32" height="32" viewBox="0 0 64 64">' + wxIcon(h[5], hourNight(w, hh)).replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg>';
+      if (h[3] != null && h[3] > 0) out += '<text x="' + cx + '" y="78" class="p' + (h[3] >= plan.rainThreshold ? ' wet' : '') + '">' + h[3] + '%</text>';
+      var txt = tab === 'wind' ? vals[i].toFixed(1) : Math.round(vals[i]) + unit;
+      out += '<text x="' + cx + '" y="' + (y - 10).toFixed(1) + '" class="v">' + txt + '</text>';
+    });
+    out += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"/>';
+    pts.forEach(function (pt) { var a = pt.split(','); out += '<circle cx="' + a[0] + '" cy="' + a[1] + '" r="3.5" fill="#fff"/>'; });
+    return out + '</svg>';
+  }
+
   // 시간별 행은 [시, 기온, 체감, 강수확률, 강수량, 날씨코드, 풍속, 습도] 순서 (weather.py 와 같은 순서)
   function showWeather(day) {
     var w = dayWeather(day);
@@ -627,38 +737,39 @@ a { color: var(--blue); text-decoration: none; }
     document.getElementById('wx-title').textContent = day.label + ' ' + loc.name + ' 날씨';
     var box = document.getElementById('wx-body');
     box.textContent = '';
+    var top = el('div', { class: 'wx-sky ' + skyClass(day, w) }, [
+      hero(day, w, true),
+      el('div', { class: 'wx-line', text: wmo(w.code) + ', 강수량 ' + num(w.rain, 'mm', 1) + ', 일출 ' + (w.sunrise || '-') + ', 일몰 ' + (w.sunset || '-') }),
+      metrics(w)
+    ]);
+    box.appendChild(top);
 
-    box.appendChild(el('div', { class: 'wxd-head' }, [
-      el('div', { class: 'wxd-cond', text: wmo(w.code) }),
-      el('div', { class: 'wxd-temp', text: '최고 ' + num(w.max, '°') + '  최저 ' + num(w.min, '°') })
-    ]));
-
-    var tiles = [['강수 확률', num(w.pop, '%')], ['강수량', num(w.rain, 'mm', 1)], ['최대 풍속', num(w.wind, 'm/s', 1)],
-      ['자외선 지수', num(w.uv, '', 1)], ['일출', w.sunrise || '-'], ['일몰', w.sunset || '-']];
-    box.appendChild(el('div', { class: 'wxd-tiles' }, tiles.map(function (t) {
-      return el('div', { class: 'wxd-tile' }, [el('span', { text: t[0] }), el('b', { text: t[1] })]);
-    })));
-
-    box.appendChild(el('div', { class: 'wxd-sec', text: '시간별' }));
+    var panel = el('div', { class: 'wx-panel' });
     if (!w.hours || !w.hours.length) {
-      box.appendChild(el('p', { class: 'wx-meta', text: '시간별 예보는 다음 갱신 때 추가됩니다' }));
+      panel.appendChild(el('p', { class: 'wx-empty', text: '시간별 예보는 다음 갱신 때 추가됩니다' }));
     } else {
-      var now = jstNow(), nowH = day.date === now.date ? Math.floor(now.min / 60) : -1;
-      var head = el('div', { class: 'wxd-row wxd-th' }, ['시간', '날씨', '기온', '체감', '강수', '바람', '습도'].map(function (t) { return el('span', { text: t }); }));
-      var rows = w.hours.map(function (h) {
-        return el('div', { class: 'wxd-row' + (h[0] === nowH ? ' now' : '') + (h[3] >= plan.rainThreshold ? ' wet' : '') }, [
-          el('span', { text: String(h[0]).padStart(2, '0') + '시' }),
-          el('span', { text: wmo(h[5]) }),
-          el('span', { class: 'b', text: num(h[1], '°') }),
-          el('span', { text: num(h[2], '°') }),
-          el('span', { class: 'p', text: num(h[3], '%') + (h[4] ? ' ' + h[4].toFixed(1) : '') }),
-          el('span', { text: num(h[6], '', 1) }),
-          el('span', { text: num(h[7], '%') })
-        ]);
+      var seg = el('div', { class: 'wx-seg', role: 'tablist' });
+      var strip = el('div', { class: 'wx-strip' });
+      var draw = function () {
+        strip.innerHTML = hourlySvg(day, w, WX_TAB);
+        Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-k') === WX_TAB ? 'true' : 'false'); });
+      };
+      [['temp', '날씨'], ['wind', '바람'], ['hum', '습도']].forEach(function (t) {
+        var b = el('button', { type: 'button', role: 'tab', 'data-k': t[0], text: t[1] });
+        b.addEventListener('click', function () { WX_TAB = t[0]; var x = strip.scrollLeft; draw(); strip.scrollLeft = x; });
+        seg.appendChild(b);
       });
-      box.appendChild(el('div', { class: 'wxd-table' }, [head].concat(rows)));
-      box.appendChild(el('p', { class: 'wxd-note', text: '강수는 확률과 mm, 바람은 m/s. 비 판정 기준 강수 확률 ' + plan.rainThreshold + '%' }));
+      panel.appendChild(seg);
+      panel.appendChild(el('div', { class: 'wx-day', text: day.full }));
+      panel.appendChild(strip);
+      panel.appendChild(el('p', { class: 'wx-note', text: '바람은 m/s, 파란 강수 확률은 비 판정 기준 ' + plan.rainThreshold + '% 이상' }));
+      draw();
+      // 당일이면 지금 시각, 아니면 아침 6시부터 보이게
+      var now = jstNow(), startH = day.date === now.date ? Math.max(0, Math.floor(now.min / 60) - 1) : 6;
+      requestAnimationFrame(function () { strip.scrollLeft = startH * 58; });
     }
+    box.appendChild(panel);
+    box.appendChild(el('p', { class: 'wx-upd', text: fmt(weather.updatedAt) + ' 갱신, Open-Meteo 예보' }));
     box.scrollTop = 0;
     openSheet('wx-sheet');
   }
@@ -666,21 +777,20 @@ a { color: var(--blue); text-decoration: none; }
   function weatherCard(day) {
     var loc = plan.locations[day.weather];
     var w = dayWeather(day);
-    var card = el('div', { class: 'wx rv' });
-    if (w) {
-      card.appendChild(el('div', { class: 'wx-top' }, [
-        el('div', { class: 'wx-cond', text: wmo(w.code) + '  ' + Math.round(w.max) + '° / ' + Math.round(w.min) + '°' }),
-        el('div', { class: 'wx-pop', text: '강수 ' + (w.pop == null ? '-' : w.pop + '%') })
-      ]));
-      card.appendChild(el('div', { class: 'wx-meta' }, [loc.name + ' 예보, ' + fmt(weather.updatedAt) + ' 갱신', el('span', { class: 'wx-more', text: '시간별 보기' })]));
-      card.classList.add('tap');
-      card.setAttribute('role', 'button'); card.setAttribute('tabindex', '0');
-      card.addEventListener('click', function () { showWeather(day); });
-      card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showWeather(day); } });
-    } else {
-      card.appendChild(el('div', { class: 'wx-cond', text: loc.name + ' 날씨' }));
-      card.appendChild(el('div', { class: 'wx-meta', text: weather ? '이 날짜 예보가 아직 없음' : '날씨 데이터를 아직 불러오지 못함' }));
+    if (!w) {
+      return el('div', { class: 'wx wx-sky cloud rv' }, [
+        el('div', { class: 'wx-line', text: loc.name + ' 날씨' }),
+        el('div', { class: 'wx-foot', text: weather ? '이 날짜 예보가 아직 없음' : '날씨 데이터를 아직 불러오지 못함' })
+      ]);
     }
+    var card = el('div', { class: 'wx wx-sky tap rv ' + skyClass(day, w), role: 'button', tabindex: '0' }, [
+      hero(day, w, false),
+      el('div', { class: 'wx-line', text: wmo(w.code) + ', ' + loc.name }),
+      metrics(w),
+      el('div', { class: 'wx-foot' }, [fmt(weather.updatedAt) + ' 갱신', el('span', { class: 'wx-more', text: '시간별 보기' })])
+    ]);
+    card.addEventListener('click', function () { showWeather(day); });
+    card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showWeather(day); } });
     return card;
   }
 
@@ -918,18 +1028,15 @@ a { color: var(--blue); text-decoration: none; }
   function net() { document.getElementById('net').hidden = navigator.onLine; }
   window.addEventListener('online', net); window.addEventListener('offline', net); net();
 
-  fetch('data/plan.json').then(function (r) { return r.json(); }).then(init).catch(function () {
-    document.getElementById('day').textContent = '일정을 불러오지 못했습니다. 한 번 온라인 상태에서 열어 주세요.';
+  fetch('data/plan.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(init).catch(function () {
+    document.getElementById('day').textContent = '일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.';
   });
 
-  // 캐시 우선이라 배포 직후 첫 화면은 이전 버전이므로, 새 서비스 워커가 넘겨받는 순간 한 번만 새로고침
+  // 예전에 설치된 오프라인 캐시가 남아 있으면 이전 데이터가 보이므로 등록 해제와 캐시 삭제만 함 (새로고침은 하지 않음)
   if ('serviceWorker' in navigator) {
-    var hadSw = !!navigator.serviceWorker.controller, reloaded = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-      if (hadSw && !reloaded) { reloaded = true; location.reload(); }
-    });
-    navigator.serviceWorker.register('sw.js').catch(function () {});
+    navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function () {});
   }
+  if (window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
 })();
 </script>
 </body>
