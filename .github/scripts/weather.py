@@ -11,22 +11,40 @@ OUT = ROOT / "data/weather.json"
 days = PLAN["days"]
 start, end = days[0]["date"], days[-1]["date"]
 
+HOURLY = ["temperature_2m", "apparent_temperature", "precipitation_probability", "precipitation",
+          "weather_code", "wind_speed_10m", "relative_humidity_2m"]
+DAILY = ["weather_code", "temperature_2m_max", "temperature_2m_min", "precipitation_probability_max",
+         "precipitation_sum", "wind_speed_10m_max", "uv_index_max", "sunrise", "sunset"]
+
 data = {}
 for key, loc in PLAN["locations"].items():
     url = (
         "https://api.open-meteo.com/v1/forecast"
         f"?latitude={loc['lat']}&longitude={loc['lon']}"
-        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max"
+        f"&daily={','.join(DAILY)}&hourly={','.join(HOURLY)}&wind_speed_unit=ms"
         f"&timezone=Asia%2FTokyo&start_date={start}&end_date={end}"
     )
     with urllib.request.urlopen(url, timeout=30) as res:
-        d = json.load(res)["daily"]
+        body = json.load(res)
+    d, h = body["daily"], body["hourly"]
+
+    # 시간별은 날짜별로 묶어 [시, 기온, 체감, 강수확률, 강수량, 날씨코드, 풍속, 습도] 배열로 줄여 파일 크기를 줄임
+    hours = {}
+    for i, t in enumerate(h["time"]):
+        hours.setdefault(t[:10], []).append([int(t[11:13])] + [h[f][i] for f in HOURLY])
+
     data[key] = {
         t: {
             "code": d["weather_code"][i],
             "max": d["temperature_2m_max"][i],
             "min": d["temperature_2m_min"][i],
             "pop": d["precipitation_probability_max"][i],
+            "rain": d["precipitation_sum"][i],
+            "wind": d["wind_speed_10m_max"][i],
+            "uv": d["uv_index_max"][i],
+            "sunrise": d["sunrise"][i][11:16] if d["sunrise"][i] else None,
+            "sunset": d["sunset"][i][11:16] if d["sunset"][i] else None,
+            "hours": hours.get(t, []),
         }
         for i, t in enumerate(d["time"])
     }

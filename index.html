@@ -265,6 +265,30 @@ a { color: var(--blue); text-decoration: none; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; }
 .panel-head b { font-size: 17px; }
 #map-frame { height: 74vh; }
+.wx.tap { cursor: pointer; }
+.wx.tap:active { transform: scale(.985); }
+.motion .wx.tap { transition: transform .2s var(--ease); }
+.wx-meta { display: flex; justify-content: space-between; gap: 8px; }
+.wx-more { color: var(--blue); font-weight: 600; white-space: nowrap; }
+#wx-body { overflow-y: auto; min-height: 0; flex: 1; padding: 0 16px 16px; -webkit-overflow-scrolling: touch; }
+.wxd-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 4px 0 12px; }
+.wxd-cond { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.wxd-temp { font-size: 15px; color: var(--ink2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.wxd-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wxd-tile { background: var(--card); border-radius: 12px; padding: 10px 12px; }
+.wxd-tile span { display: block; font-size: 12px; color: var(--ink2); }
+.wxd-tile b { font-size: 17px; font-variant-numeric: tabular-nums; }
+.wxd-sec { margin: 18px 2px 8px; font-size: 17px; font-weight: 700; }
+.wxd-table { background: var(--card); border-radius: 12px; overflow: clip; }
+.wxd-row { display: grid; grid-template-columns: 32px 1fr 32px 32px 58px 28px 34px; gap: 4px; padding: 9px 10px; font-size: 13px;
+  font-variant-numeric: tabular-nums; align-items: center; }
+.wxd-row + .wxd-row { border-top: .5px solid var(--sep); }
+.wxd-row span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wxd-row .b { font-weight: 600; }
+.wxd-row.wet .p { color: var(--blue); font-weight: 600; }
+.wxd-row.now { background: var(--fill); }
+.wxd-th { position: sticky; top: 0; background: var(--card); color: var(--ink2); font-size: 12px; z-index: 1; }
+.wxd-note { font-size: 12px; color: var(--ink3); margin: 8px 2px 0; }
 #map-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
 .set { margin: 4px 16px 24px; background: var(--card); border-radius: 12px; }
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; }
@@ -313,6 +337,15 @@ a { color: var(--blue); text-decoration: none; }
     <div class="grab"></div>
     <div class="panel-head"><b id="map-title"></b><button class="btn" type="button" data-close>닫기</button></div>
     <div id="map-frame"></div>
+  </div>
+</div>
+
+<div class="sheet" id="wx-sheet" aria-hidden="true">
+  <div class="scrim" data-close></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="wx-title">
+    <div class="grab"></div>
+    <div class="panel-head"><b id="wx-title"></b><button class="btn" type="button" data-close>닫기</button></div>
+    <div id="wx-body"></div>
   </div>
 </div>
 
@@ -584,6 +617,52 @@ a { color: var(--blue); text-decoration: none; }
     return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
   }
 
+  function num(v, unit, digits) { return v == null ? '-' : (digits ? v.toFixed(digits) : Math.round(v)) + unit; }
+
+  // 시간별 행은 [시, 기온, 체감, 강수확률, 강수량, 날씨코드, 풍속, 습도] 순서 (weather.py 와 같은 순서)
+  function showWeather(day) {
+    var w = dayWeather(day);
+    if (!w) return;
+    var loc = plan.locations[day.weather];
+    document.getElementById('wx-title').textContent = day.label + ' ' + loc.name + ' 날씨';
+    var box = document.getElementById('wx-body');
+    box.textContent = '';
+
+    box.appendChild(el('div', { class: 'wxd-head' }, [
+      el('div', { class: 'wxd-cond', text: wmo(w.code) }),
+      el('div', { class: 'wxd-temp', text: '최고 ' + num(w.max, '°') + '  최저 ' + num(w.min, '°') })
+    ]));
+
+    var tiles = [['강수 확률', num(w.pop, '%')], ['강수량', num(w.rain, 'mm', 1)], ['최대 풍속', num(w.wind, 'm/s', 1)],
+      ['자외선 지수', num(w.uv, '', 1)], ['일출', w.sunrise || '-'], ['일몰', w.sunset || '-']];
+    box.appendChild(el('div', { class: 'wxd-tiles' }, tiles.map(function (t) {
+      return el('div', { class: 'wxd-tile' }, [el('span', { text: t[0] }), el('b', { text: t[1] })]);
+    })));
+
+    box.appendChild(el('div', { class: 'wxd-sec', text: '시간별' }));
+    if (!w.hours || !w.hours.length) {
+      box.appendChild(el('p', { class: 'wx-meta', text: '시간별 예보는 다음 갱신 때 추가됩니다' }));
+    } else {
+      var now = jstNow(), nowH = day.date === now.date ? Math.floor(now.min / 60) : -1;
+      var head = el('div', { class: 'wxd-row wxd-th' }, ['시간', '날씨', '기온', '체감', '강수', '바람', '습도'].map(function (t) { return el('span', { text: t }); }));
+      var rows = w.hours.map(function (h) {
+        return el('div', { class: 'wxd-row' + (h[0] === nowH ? ' now' : '') + (h[3] >= plan.rainThreshold ? ' wet' : '') }, [
+          el('span', { text: String(h[0]).padStart(2, '0') + '시' }),
+          el('span', { text: wmo(h[5]) }),
+          el('span', { class: 'b', text: num(h[1], '°') }),
+          el('span', { text: num(h[2], '°') }),
+          el('span', { class: 'p', text: num(h[3], '%') + (h[4] ? ' ' + h[4].toFixed(1) : '') }),
+          el('span', { text: num(h[6], '', 1) }),
+          el('span', { text: num(h[7], '%') })
+        ]);
+      });
+      box.appendChild(el('div', { class: 'wxd-table' }, [head].concat(rows)));
+      box.appendChild(el('p', { class: 'wxd-note', text: '강수는 확률과 mm, 바람은 m/s. 비 판정 기준 강수 확률 ' + plan.rainThreshold + '%' }));
+    }
+    box.scrollTop = 0;
+    openSheet('wx-sheet');
+  }
+
   function weatherCard(day) {
     var loc = plan.locations[day.weather];
     var w = dayWeather(day);
@@ -593,7 +672,11 @@ a { color: var(--blue); text-decoration: none; }
         el('div', { class: 'wx-cond', text: wmo(w.code) + '  ' + Math.round(w.max) + '° / ' + Math.round(w.min) + '°' }),
         el('div', { class: 'wx-pop', text: '강수 ' + (w.pop == null ? '-' : w.pop + '%') })
       ]));
-      card.appendChild(el('div', { class: 'wx-meta', text: loc.name + ' 예보, ' + fmt(weather.updatedAt) + ' 갱신' }));
+      card.appendChild(el('div', { class: 'wx-meta' }, [loc.name + ' 예보, ' + fmt(weather.updatedAt) + ' 갱신', el('span', { class: 'wx-more', text: '시간별 보기' })]));
+      card.classList.add('tap');
+      card.setAttribute('role', 'button'); card.setAttribute('tabindex', '0');
+      card.addEventListener('click', function () { showWeather(day); });
+      card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showWeather(day); } });
     } else {
       card.appendChild(el('div', { class: 'wx-cond', text: loc.name + ' 날씨' }));
       card.appendChild(el('div', { class: 'wx-meta', text: weather ? '이 날짜 예보가 아직 없음' : '날씨 데이터를 아직 불러오지 못함' }));
