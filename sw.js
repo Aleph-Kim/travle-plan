@@ -1,5 +1,5 @@
 // 일정·화면 파일이 바뀌면 이 값을 올려야 기존 캐시가 교체됨
-const CACHE = 'trip-v1';
+const CACHE = 'trip-v2';
 const ASSETS = ['./', './index.html', './data/plan.json', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
