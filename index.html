@@ -957,6 +957,7 @@ a { color: var(--blue); text-decoration: none; }
   }
 
   // 오늘 탭이면 이미 시작한 일정 중 가장 최근 것을 현재로, 그 전은 지난 일정으로 표시
+  var capIo = null;
   function markNow(scroll) {
     var now = jstNow();
     var day = plan.days[current];
@@ -969,6 +970,7 @@ a { color: var(--blue); text-decoration: none; }
       if (day.date === now.date && m !== '' && +m <= now.min) hit = j;
     });
     var cap = document.getElementById('nowcap');
+    if (capIo) capIo.disconnect();
     if (hit === -1) { cap.classList.remove('show'); if (scroll) window.scrollTo(0, 0); return; }
     Array.prototype.forEach.call(rows, function (r, j) { if (j < hit) r.classList.add('past'); });
     var cur = rows[hit];
@@ -980,7 +982,13 @@ a { color: var(--blue); text-decoration: none; }
     cap.querySelector('.a').textContent = '지금  ' + t.firstChild.textContent;
     var nt = next && (next.querySelector('.choice-tag') || next.querySelector('.title'));
     cap.querySelector('.b').textContent = next ? '다음  ' + next.getAttribute('data-min').replace(/^(\d+)$/, function (m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }) + '  ' + nt.firstChild.textContent : '오늘 마지막 일정';
-    cap.classList.add('show');
+    // 현재 일정이 화면에 보이는 동안은 캡슐을 숨기고, 스크롤해서 벗어나면 보여줌 (상단 날짜 바에 가려진 부분은 안 보이는 것으로 봄)
+    if ('IntersectionObserver' in window) {
+      capIo = new IntersectionObserver(function (es) {
+        cap.classList.toggle('show', !es[es.length - 1].isIntersecting);
+      }, { rootMargin: '-' + document.getElementById('bar').offsetHeight + 'px 0px 0px 0px' });
+      capIo.observe(cur);
+    } else cap.classList.add('show');
     cap.onclick = function () { scrollUnderBar(cur, motionOn(), 12); };
     if (scroll) scrollUnderBar(cur, scroll === 'smooth' && motionOn(), 12);
   }
