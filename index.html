@@ -104,9 +104,6 @@ a { color: var(--blue); text-decoration: none; }
   border-bottom: .5px solid transparent; transition: border-color .3s;
 }
 .bar.stuck { border-bottom-color: var(--sep); }
-.bar-title { height: 0; overflow: hidden; text-align: center; font-weight: 600; font-size: 15px; opacity: 0; transition: opacity .25s, height .25s var(--ease); }
-.bar.stuck .bar-title { height: 22px; opacity: 1; margin-bottom: 6px; }
-.bar.snap .bar-title { transition: none; }
 .seg { position: relative; display: flex; background: var(--fill); border-radius: 10px; padding: 2px; }
 .seg button {
   position: relative; z-index: 1; flex: 1; border: 0; background: none; padding: 7px 0; font-size: 13px; font-weight: 500;
@@ -178,7 +175,20 @@ a { color: var(--blue); text-decoration: none; }
 .sk-ex { height: 52px; margin: 0 0 10px; border-radius: 14px; }
 .sk-line { width: 60%; height: 44px; margin: 0 0 12px 22px; border-radius: 10px; }
 @keyframes pulse { 0% { transform: scale(.6); opacity: .45; } 100% { transform: scale(1.8); opacity: 0; } }
-.it.past { opacity: .5; }
+.it.past.open { opacity: .6; }
+.it.past:not(.open) .card { display: none; }
+.past-sum { all: unset; display: none; align-items: baseline; gap: 10px; padding: 6px 4px; cursor: pointer; width: calc(100% - 8px); }
+.it.past:not(.open) .past-sum { display: flex; }
+.it.past:not(.open) { margin-bottom: 4px; }
+.past-sum .time { color: var(--ink3); min-width: 38px; }
+.past-sum .t { font-size: 15px; font-weight: 500; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.past-sum .done { font-size: 11px; font-weight: 700; color: var(--green); white-space: nowrap; }
+.it.past .dot { width: 16px; height: 16px; left: -23px; border: 0; background: var(--green); }
+.it.past:not(.open) .dot { top: 9px; }
+.it.past .dot::after { content: ''; position: absolute; left: 5.5px; top: 2.5px; width: 3.5px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.it.past.open .it-head { cursor: pointer; }
+.tl-done { position: absolute; left: 6px; top: 8px; width: 2px; border-radius: 1px; background: var(--green); }
+.motion .tl-done { transition: height .4s var(--ease); }
 .card { background: var(--card); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
 .it.now .card { box-shadow: 0 0 0 2px var(--green), var(--shadow); }
 .it-head { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
@@ -370,7 +380,6 @@ a { color: var(--blue); text-decoration: none; }
 <div class="offline" id="net" hidden>오프라인. 마지막으로 받은 일정과 날씨를 표시 중</div>
 <section class="group" id="flights"><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div></section>
 <nav class="bar" id="bar">
-  <div class="bar-title" id="bar-title"></div>
   <div class="seg" id="tabs" role="tablist" aria-label="날짜"><div class="seg-pill" id="pill"></div><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span></div>
 </nav>
 <main id="day">
@@ -907,7 +916,6 @@ a { color: var(--blue); text-decoration: none; }
     current = i;
     var day = view(plan.days[i]);
     moveTabs(i);
-    document.getElementById('bar-title').textContent = day.label + ' ' + day.title;
 
     var main = document.getElementById('day');
     main.textContent = '';
@@ -964,15 +972,31 @@ a { color: var(--blue); text-decoration: none; }
     var rows = document.querySelectorAll('#day .it');
     var hit = -1;
     Array.prototype.forEach.call(rows, function (r, j) {
-      r.classList.remove('now', 'past');
+      r.classList.remove('now');
       var c = r.querySelector('.now-chip'); if (c) c.remove();
       var m = r.getAttribute('data-min');
       if (day.date === now.date && m !== '' && +m <= now.min) hit = j;
     });
     var cap = document.getElementById('nowcap');
     if (capIo) capIo.disconnect();
-    if (hit === -1) { cap.classList.remove('show'); if (scroll) window.scrollTo(0, 0); return; }
-    Array.prototype.forEach.call(rows, function (r, j) { if (j < hit) r.classList.add('past'); });
+    Array.prototype.forEach.call(rows, function (r, j) { setPast(r, j < hit); });
+    if (hit === -1) {
+      progress(null);
+      if (scroll) window.scrollTo(0, 0);
+      // 다른 날짜를 보고 있으면 오늘 지금 일정으로 돌아가는 캡슐을 보여줌
+      var ti = plan.days.findIndex(function (d) { return d.date === now.date; });
+      var tv = ti !== -1 && ti !== current ? view(plan.days[ti]) : null;
+      var th = -1;
+      if (tv) tv.stops.forEach(function (s, j) { var m = toMin(s.time); if (m != null && m <= now.min) th = j; });
+      if (th === -1) { cap.classList.remove('show'); return; }
+      var ts = tv.stops[th], tn = null;
+      for (var k = th + 1; k < tv.stops.length; k++) if (toMin(tv.stops[k].time) != null) { tn = tv.stops[k]; break; }
+      cap.querySelector('.a').textContent = '지금  ' + (ts.title || ts.name);
+      cap.querySelector('.b').textContent = tn ? '다음  ' + tn.time + '  ' + (tn.title || tn.name) : '오늘 마지막 일정';
+      cap.classList.add('show');
+      cap.onclick = function () { renderDay(ti, ti > current ? 1 : -1); markNow('smooth'); };
+      return;
+    }
     var cur = rows[hit];
     cur.classList.add('now');
     cur.querySelector('.time').appendChild(el('span', { class: 'now-chip', text: '지금' }));
@@ -989,8 +1013,41 @@ a { color: var(--blue); text-decoration: none; }
       }, { rootMargin: '-' + document.getElementById('bar').offsetHeight + 'px 0px 0px 0px' });
       capIo.observe(cur);
     } else cap.classList.add('show');
+    progress(cur);
     cap.onclick = function () { scrollUnderBar(cur, motionOn(), 12); };
     if (scroll) scrollUnderBar(cur, scroll === 'smooth' && motionOn(), 12);
+  }
+
+  function labelOf(r) { var t = r.querySelector('.choice-tag') || r.querySelector('.title'); return t ? t.firstChild.textContent : ''; }
+
+  // 지난 일정은 시각과 제목 한 줄로 접고, 누르면 펼쳐서 원래 카드를 보여줌
+  function setPast(r, past) {
+    var sum = r.querySelector('.past-sum');
+    if (!past) { r.classList.remove('past', 'open'); if (sum) sum.remove(); return; }
+    r.classList.add('past');
+    if (sum) return;
+    sum = el('button', { class: 'past-sum', type: 'button', 'aria-label': '지난 일정 펼치기' }, [
+      el('span', { class: 'time', text: r.querySelector('.time').firstChild.textContent }),
+      el('span', { class: 't', text: labelOf(r) }),
+      el('span', { class: 'done', text: '완료' })
+    ]);
+    sum.addEventListener('click', function () { r.classList.add('open'); progress(document.querySelector('#day .it.now')); });
+    r.querySelector('.it-head').addEventListener('click', function () {
+      if (!r.classList.contains('open')) return;
+      r.classList.remove('open'); progress(document.querySelector('#day .it.now'));
+    });
+    r.insertBefore(sum, r.querySelector('.card'));
+  }
+
+  // 타임라인 선을 처음부터 지금 일정의 점까지 초록으로 채워 진행 정도를 보여줌
+  function progress(cur) {
+    var tl = document.querySelector('#day .tl');
+    if (!tl) return;
+    var bar = tl.querySelector('.tl-done');
+    if (!cur) { if (bar) bar.remove(); return; }
+    if (!bar) { bar = el('span', { class: 'tl-done' }); tl.insertBefore(bar, tl.firstChild); }
+    var dot = cur.querySelector('.dot');
+    bar.style.height = Math.max(0, cur.offsetTop + dot.offsetTop + dot.offsetHeight / 2 - 8) + 'px';
   }
 
   // 고정된 날짜 바는 붙은 상태에서 offsetTop 이 스크롤 값과 같아져 기준이 될 수 없어서, 날짜 본문 위치에서 바 높이만큼 뺀 곳으로 이동
@@ -1142,7 +1199,26 @@ a { color: var(--blue); text-decoration: none; }
     if (ticking) return; ticking = true;
     requestAnimationFrame(function () { bar.classList.toggle('stuck', bar.getBoundingClientRect().top <= 0); ticking = false; });
   }, { passive: true });
-  window.addEventListener('resize', function () { if (plan) moveTabs(current); });
+  // 좌우로 밀어 날짜 이동. 세로 스크롤과 구분하려고 가로 이동이 충분히 크고 세로보다 확실히 클 때만
+  (function () {
+    var x0 = null, y0 = 0;
+    var main = document.getElementById('day');
+    main.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1 || e.target.closest('.wx-strip, input, iframe')) { x0 = null; return; }
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    }, { passive: true });
+    main.addEventListener('touchend', function (e) {
+      if (x0 === null || !plan) return;
+      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      var i = current + (dx < 0 ? 1 : -1);
+      if (i < 0 || i >= plan.days.length) return;
+      renderDay(i, dx < 0 ? 1 : -1);
+      toDayTop();
+    }, { passive: true });
+  })();
+  window.addEventListener('resize', function () { if (plan) { moveTabs(current); progress(document.querySelector('#day .it.now')); } });
 
   function net() { document.getElementById('net').hidden = navigator.onLine; }
   window.addEventListener('online', net); window.addEventListener('offline', net); net();
