@@ -71,7 +71,15 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 /* 홈 화면 앱에서 화면 끝 튕김, 두 번 탭 확대, 버튼 길게 누르기 메뉴를 막아 앱처럼 동작하게 함 */
-html, body { overscroll-behavior: none; }
+html, body { overscroll-behavior: none; overflow-x: clip; }
+/* 맨 위에서 끌어내리면 화면이 따라 내려오며 새로고침 안내가 위에서 드러남 */
+body { position: relative; }
+body::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 200px; background: var(--bg); }
+#ptr { position: absolute; z-index: 1; left: 0; right: 0; top: -48px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--ink2); }
+#ptr svg { width: 18px; height: 18px; transition: transform .2s; }
+#ptr.ready svg { transform: rotate(180deg); }
+#ptr.load svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 html { touch-action: manipulation; }
 button, .btn, .seg, #nowcap, .past-sum, .wx.tap, summary { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 html { background: var(--outer); }
@@ -84,7 +92,7 @@ body {
 button { font: inherit; color: inherit; }
 a { color: var(--blue); text-decoration: none; }
 
-.hero { padding: 54px 20px 6px; display: flex; align-items: flex-end; justify-content: space-between; }
+.hero { padding: 16px 20px 6px; display: flex; align-items: flex-end; justify-content: space-between; }
 .hero h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
 .hero p { margin: 4px 0 0; color: var(--ink2); font-size: 15px; }
 .icon-btn {
@@ -147,7 +155,7 @@ a { color: var(--blue); text-decoration: none; }
 .sec { margin: 26px 4px 10px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
 
 .tl { position: relative; list-style: none; margin: 0; padding: 0 0 0 22px; }
-.tl::before { content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; border-radius: 1px; background: var(--sep); }
+.tl::before { content: ""; position: absolute; left: 6px; top: var(--tl-top, 8px); bottom: 8px; width: 2px; border-radius: 1px; background: var(--sep); }
 .it { position: relative; margin-bottom: 12px; scroll-margin-top: 110px; }
 .dot { position: absolute; left: -22px; top: 18px; width: 14px; height: 14px; border-radius: 50%; background: var(--card); border: 3px solid var(--ink3); }
 .it.now .dot { border-color: var(--green); background: var(--green); }
@@ -191,7 +199,7 @@ a { color: var(--blue); text-decoration: none; }
 .it.past:not(.open) .dot { top: 9px; }
 .it.past .dot::after { content: ''; position: absolute; left: 5.5px; top: 2.5px; width: 3.5px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .it.past.open .it-head { cursor: pointer; }
-.tl-done { position: absolute; left: 6px; top: 8px; width: 2px; border-radius: 1px; background: var(--green); }
+.tl-done { position: absolute; left: 6px; top: var(--tl-top, 8px); width: 2px; border-radius: 1px; background: var(--green); }
 .motion .tl-done { transition: height .4s var(--ease); }
 .card { background: var(--card); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
 .it.now .card { box-shadow: 0 0 0 2px var(--green), var(--shadow); }
@@ -372,6 +380,7 @@ a { color: var(--blue); text-decoration: none; }
 </style>
 </head>
 <body>
+<div id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg><span>당겨서 새로고침</span></div>
 <header class="hero">
   <div>
     <h1>히로시마</h1>
@@ -955,7 +964,7 @@ a { color: var(--blue); text-decoration: none; }
     main.appendChild(el('p', { class: 'foot', text: plan.onsenTip + '. ' + plan.ratingNote }));
 
     if (dir && motionOn() && main.animate) {
-      main.animate([{ opacity: 0, transform: 'translateX(' + (dir * 28) + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.22,1,.36,1)' });
+      main.animate([{ transform: 'translateX(' + (dir * 100) + '%)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
     }
     if (keepScroll) window.scrollTo(0, y);
     if (quiet) {
@@ -1052,10 +1061,19 @@ a { color: var(--blue); text-decoration: none; }
     var tl = document.querySelector('#day .tl');
     if (!tl) return;
     var bar = tl.querySelector('.tl-done');
+    var top = lineTop(tl);
     if (!cur) { if (bar) bar.remove(); return; }
     if (!bar) { bar = el('span', { class: 'tl-done' }); tl.insertBefore(bar, tl.firstChild); }
     var dot = cur.querySelector('.dot');
-    bar.style.height = Math.max(0, cur.offsetTop + dot.offsetTop + dot.offsetHeight / 2 - 8) + 'px';
+    bar.style.height = Math.max(0, cur.offsetTop + dot.offsetTop + dot.offsetHeight / 2 - top) + 'px';
+  }
+
+  // 세로 선이 첫 점 위로 삐져나오지 않도록 첫 점의 가운데에서 시작
+  function lineTop(tl) {
+    var first = tl.querySelector('.it'), d = first && first.querySelector('.dot');
+    var top = d ? first.offsetTop + d.offsetTop + d.offsetHeight / 2 : 8;
+    tl.style.setProperty('--tl-top', top + 'px');
+    return top;
   }
 
   // 고정된 날짜 바는 붙은 상태에서 offsetTop 이 스크롤 값과 같아져 기준이 될 수 없어서, 날짜 본문 위치에서 바 높이만큼 뺀 곳으로 이동
@@ -1207,25 +1225,83 @@ a { color: var(--blue); text-decoration: none; }
     if (ticking) return; ticking = true;
     requestAnimationFrame(function () { bar.classList.toggle('stuck', bar.getBoundingClientRect().top <= 0); ticking = false; });
   }, { passive: true });
-  // 좌우로 밀어 날짜 이동. 세로 스크롤과 구분하려고 가로 이동이 충분히 크고 세로보다 확실히 클 때만
+  // 좌우로 밀면 그날 화면 전체가 손가락을 따라 움직이고, 충분히 밀면 다음 날짜로 넘어감 (세로 스크롤과 구분)
   (function () {
-    var x0 = null, y0 = 0;
     var main = document.getElementById('day');
+    var x0 = null, y0 = 0, dx = 0, lock = null, t0 = 0;
+    var W = function () { return main.offsetWidth || window.innerWidth; };
+    var set = function (x, ms) {
+      main.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.22,1,.36,1)' : 'none';
+      main.style.transform = x ? 'translateX(' + x + 'px)' : '';
+    };
     main.addEventListener('touchstart', function (e) {
-      if (e.touches.length !== 1 || e.target.closest('.wx-strip, input, iframe')) { x0 = null; return; }
-      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+      if (!plan || e.touches.length !== 1 || e.target.closest('.wx-strip, input, iframe')) { x0 = null; return; }
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; lock = null; t0 = Date.now();
     }, { passive: true });
-    main.addEventListener('touchend', function (e) {
-      if (x0 === null || !plan) return;
-      var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    main.addEventListener('touchmove', function (e) {
+      if (x0 === null) return;
+      var mx = e.touches[0].clientX - x0, my = e.touches[0].clientY - y0;
+      if (lock === null && (Math.abs(mx) > 10 || Math.abs(my) > 10)) lock = Math.abs(mx) > Math.abs(my) * 1.2 ? 'x' : 'y';
+      if (lock !== 'x') return;
+      e.preventDefault();
+      var edge = (mx > 0 && current === 0) || (mx < 0 && current === plan.days.length - 1);
+      dx = edge ? mx * 0.3 : mx;
+      if (motionOn()) set(dx, 0);
+    }, { passive: false });
+    var end = function () {
+      if (x0 === null) return;
       x0 = null;
-      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      if (lock !== 'x') return;
+      var fast = Math.abs(dx) > 30 && Date.now() - t0 < 250;
       var i = current + (dx < 0 ? 1 : -1);
-      if (i < 0 || i >= plan.days.length) return;
-      renderDay(i, dx < 0 ? 1 : -1);
-      toDayTop();
+      if ((Math.abs(dx) < W() * 0.25 && !fast) || i < 0 || i >= plan.days.length) { set(0, motionOn() ? 260 : 0); return; }
+      var dir = dx < 0 ? 1 : -1;
+      if (!motionOn()) { renderDay(i, 0); toDayTop(); return; }
+      set(-dir * W(), 200);
+      setTimeout(function () {
+        renderDay(i, 0);
+        toDayTop();
+        set(dir * W(), 0);
+        requestAnimationFrame(function () { requestAnimationFrame(function () { set(0, 300); }); });
+      }, 200);
+    };
+    main.addEventListener('touchend', end, { passive: true });
+    main.addEventListener('touchcancel', function () { if (x0 !== null) { x0 = null; set(0, 200); } }, { passive: true });
+  })();
+  (function () {
+    var y0 = null, x0 = 0, pull = 0, mode = null, ptr = document.getElementById('ptr'), label = ptr.querySelector('span');
+    var LIMIT = 70;
+    var move = function (y, ms) {
+      document.body.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.22,1,.36,1)' : 'none';
+      document.body.style.transform = y ? 'translateY(' + y + 'px)' : '';
+    };
+    document.addEventListener('touchstart', function (e) {
+      if (window.scrollY > 0 || e.touches.length !== 1 || document.querySelector('.sheet.open')) { y0 = null; return; }
+      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; pull = 0; mode = null;
+    }, { passive: true });
+    document.addEventListener('touchmove', function (e) {
+      if (y0 === null) return;
+      var dy = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
+      if (mode === null && (Math.abs(dy) > 8 || Math.abs(dx) > 8)) mode = dy > 0 && Math.abs(dy) > Math.abs(dx) ? 'pull' : 'none';
+      if (mode !== 'pull') return;
+      e.preventDefault();
+      pull = Math.min(140, Math.max(0, dy) * 0.45);
+      move(pull, 0);
+      ptr.classList.toggle('ready', pull >= LIMIT);
+      label.textContent = pull >= LIMIT ? '놓으면 새로고침' : '당겨서 새로고침';
+    }, { passive: false });
+    document.addEventListener('touchend', function () {
+      if (y0 === null) return;
+      y0 = null;
+      if (mode !== 'pull') return;
+      if (pull >= LIMIT) {
+        ptr.classList.remove('ready'); ptr.classList.add('load'); label.textContent = '불러오는 중';
+        move(56, 200);
+        setTimeout(function () { location.reload(); }, 250);
+      } else move(0, 250);
     }, { passive: true });
   })();
+
   window.addEventListener('resize', function () { if (plan) { moveTabs(current); progress(document.querySelector('#day .it.now')); } });
 
   function net() { document.getElementById('net').hidden = navigator.onLine; }
