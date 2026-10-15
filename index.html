@@ -165,8 +165,8 @@ a { color: var(--blue); text-decoration: none; }
 .move .card { background: transparent; box-shadow: none; padding: 6px 4px; }
 .move .dot { width: 10px; height: 10px; left: -20px; top: 12px; border-width: 2px; }
 .move .title { font-size: 15px; font-weight: 500; }
-/* 이동 항목은 평소 배경 없이 두지만, 지금 진행 중이면 카드 모양으로 바꿔 강조 테두리 안쪽 여백을 확보 */
-.move.now .card { background: var(--card); padding: 12px 16px; box-shadow: 0 0 0 2px var(--green), var(--shadow); }
+/* 이동 항목은 진행 중이어도 배경 없이, 테두리와 그 안쪽 여백만 더함 */
+.move.now .card { padding: 12px 16px; border-radius: 16px; box-shadow: 0 0 0 2px var(--green); }
 .move.now .dot { top: 18px; }
 .note { font-size: 14px; color: var(--ink2); margin-top: 4px; }
 .note div + div, .tip div + div { margin-top: 2px; }
