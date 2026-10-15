@@ -975,9 +975,9 @@ a { color: var(--blue); text-decoration: none; }
     });
   }
 
-  // 날씨는 저장소의 공유 파일 하나를 모두가 같이 읽음 (기기에 따로 저장하지 않음)
+  // 날씨는 저장소의 공유 파일 하나를 모두가 같이 읽음. no-cache 라 매번 서버에 변경 여부를 묻고, 그대로면 304 로 내용 없이 끝남
   function loadWeather() {
-    return fetch(WEATHER_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+    return fetch(WEATHER_URL, { cache: 'no-cache' }).then(function (r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     }).then(function (j) { weather = j; });
@@ -1073,7 +1073,7 @@ a { color: var(--blue); text-decoration: none; }
   function net() { document.getElementById('net').hidden = navigator.onLine; }
   window.addEventListener('online', net); window.addEventListener('offline', net); net();
 
-  fetch('data/plan.json', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(init).catch(function () {
+  fetch('data/plan.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(init).catch(function () {
     document.getElementById('day').textContent = '일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.';
   });
 
@@ -1091,7 +1091,7 @@ a { color: var(--blue); text-decoration: none; }
     pageTag().then(function (t) {
       if (tag && t && t !== tag) { location.replace(location.pathname + '?v=' + encodeURIComponent(t)); return; }
       return Promise.all([
-        fetch('data/plan.json', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+        fetch('data/plan.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }),
         loadWeather()
       ]).then(function (res) {
         plan = res[0];
