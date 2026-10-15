@@ -4,11 +4,11 @@ const ACTIVE = 'trip-active';
 const STAGED = 'trip-staged';
 const WEATHER = 'https://raw.githubusercontent.com/Aleph-Kim/travle-plan/main/data/weather.json';
 const BASE = new URL('./', self.location).href;
-const FILES = ['index.html', 'config.js', 'data/plan.json', 'manifest.webmanifest',
+const FILES = ['index.html', 'config.js', 'data/plan.json', 'data/i18n.json', 'manifest.webmanifest',
   'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'].map((f) => BASE + f);
 const TRACKED = FILES.concat([WEATHER]);
 // 이 파일이 바뀌면 새로고침을 물어봄. 날씨는 일정이 바뀔 때(plan, rain)만 물어봄
-const ASK = [BASE + 'index.html', BASE + 'config.js', BASE + 'data/plan.json'];
+const ASK = [BASE + 'index.html', BASE + 'config.js', BASE + 'data/plan.json', BASE + 'data/i18n.json'];
 
 const keyOf = (url) => {
   const u = new URL(url);

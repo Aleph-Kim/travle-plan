@@ -135,7 +135,7 @@ a { color: var(--blue); text-decoration: none; }
 .eyebrow { font-size: 13px; font-weight: 600; color: var(--ink2); }
 .day-hero h2 { margin: 2px 0 0; font-size: 30px; line-height: 1.15; letter-spacing: -0.03em; }
 .day-hero .point { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 999px; background: var(--fill); font-size: 13px; font-weight: 600; }
-.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.stats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; margin-top: 16px; }
 .stat { background: var(--card); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); }
 .stat .l { font-size: 12px; color: var(--ink2); }
 .stat .v { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
@@ -361,6 +361,10 @@ a { color: var(--blue); text-decoration: none; }
 .set { margin: 4px 16px 24px; background: var(--card); border-radius: 12px; }
 .set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; }
 .set-row small { display: block; color: var(--ink2); font-size: 13px; }
+.set-row.col { display: block; }
+.lang-seg { display: flex; background: var(--fill); border-radius: 9px; padding: 2px; margin-top: 10px; }
+.lang-seg button { flex: 1; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 600; padding: 7px 0; border-radius: 7px; color: var(--ink); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+.lang-seg button[aria-checked="true"] { background: var(--card); box-shadow: 0 1px 4px rgba(0,0,0,.12); }
 .switch { position: relative; width: 51px; height: 31px; flex: 0 0 51px; }
 .switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; z-index: 1; }
 .switch span { position: absolute; inset: 0; border-radius: 16px; background: var(--fill); transition: background .25s; }
@@ -385,20 +389,20 @@ a { color: var(--blue); text-decoration: none; }
 <div id="ptr" aria-hidden="true"><svg viewBox="0 0 28.6 28" fill="currentColor"><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(0 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(30 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(60 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(90 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(120 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(150 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(180 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(210 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(240 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(270 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(300 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(330 14.3 14)"/></svg></div>
 <header class="hero">
   <div>
-    <h1>히로시마</h1>
-    <p>10월 15일 ~ 19일</p>
+    <h1 data-t>히로시마</h1>
+    <p data-t>10월 15일 ~ 19일</p>
   </div>
-  <button class="icon-btn" id="open-set" type="button" aria-label="설정">
+  <button class="icon-btn" id="open-set" type="button" aria-label="설정" data-ta>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
   </button>
 </header>
-<div class="offline" id="net" hidden>오프라인. 마지막으로 받은 일정과 날씨를 표시 중</div>
+<div class="offline" id="net" hidden data-t>오프라인. 마지막으로 받은 일정과 날씨를 표시 중</div>
 <section class="group" id="flights"><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div></section>
 <nav class="bar" id="bar">
-  <div class="seg" id="tabs" role="tablist" aria-label="날짜"><div class="seg-pill" id="pill"></div><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span></div>
+  <div class="seg" id="tabs" role="tablist" aria-label="날짜" data-ta><div class="seg-pill" id="pill"></div><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span></div>
 </nav>
 <main id="day">
-  <div class="skel" aria-label="불러오는 중">
+  <div class="skel" aria-label="불러오는 중" data-ta>
     <div class="sk sk-eyebrow"></div>
     <div class="sk sk-title"></div>
     <div class="sk sk-point"></div>
@@ -412,13 +416,13 @@ a { color: var(--blue); text-decoration: none; }
   </div>
 </main>
 <section id="extras"><div class="sk sk-exh"></div><div class="sk sk-ex"></div><div class="sk sk-ex"></div><div class="sk sk-ex"></div></section>
-<button id="nowcap" type="button" aria-label="현재 일정으로 이동"><span class="a"></span><span class="go">이동</span><span class="b"></span></button>
+<button id="nowcap" type="button" aria-label="현재 일정으로 이동" data-ta><span class="a"></span><span class="go" data-t>이동</span><span class="b"></span></button>
 
 <div class="sheet" id="map-sheet" aria-hidden="true">
   <div class="scrim" data-close></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="map-title">
     <div class="grab"></div>
-    <div class="panel-head"><b id="map-title"></b><button class="btn" type="button" data-close>닫기</button></div>
+    <div class="panel-head"><b id="map-title"></b><button class="btn" type="button" data-close data-t>닫기</button></div>
     <div id="map-frame"></div>
   </div>
 </div>
@@ -427,7 +431,7 @@ a { color: var(--blue); text-decoration: none; }
   <div class="scrim" data-close></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="wx-title">
     <div class="grab"></div>
-    <div class="panel-head"><b id="wx-title"></b><button class="btn" type="button" data-close>닫기</button></div>
+    <div class="panel-head"><b id="wx-title"></b><button class="btn" type="button" data-close data-t>닫기</button></div>
     <div id="wx-body"></div>
   </div>
 </div>
@@ -436,15 +440,19 @@ a { color: var(--blue); text-decoration: none; }
   <div class="scrim" data-close></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="set-title">
     <div class="grab"></div>
-    <div class="panel-head"><b id="set-title">설정</b><button class="btn" type="button" data-close>완료</button></div>
+    <div class="panel-head"><b id="set-title" data-t>설정</b><button class="btn" type="button" data-close data-t>완료</button></div>
     <div class="set">
-      <div class="set-row">
-        <span>인터랙션 효과<small>화면 전환, 등장 효과. 이 설정만 이 기기에 저장</small></span>
-        <span class="switch"><input type="checkbox" id="motion-toggle" aria-label="인터랙션 효과"><span></span></span>
+      <div class="set-row col">
+        <span data-t>언어<small data-t>화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장</small></span>
+        <div class="lang-seg" id="lang-seg" role="radiogroup"><button type="button" data-lang="ko">한국어</button><button type="button" data-lang="en">English</button><button type="button" data-lang="ja">日本語</button></div>
       </div>
       <div class="set-row">
-        <span>새로고침<small>홈 화면 앱용. 받아 둔 새 버전도 이때 반영</small></span>
-        <button class="btn" type="button" id="reload-btn" style="white-space: nowrap">다시 불러오기</button>
+        <span data-t>인터랙션 효과<small data-t>화면 전환, 등장 효과. 이 설정만 이 기기에 저장</small></span>
+        <span class="switch"><input type="checkbox" id="motion-toggle" aria-label="인터랙션 효과" data-ta><span></span></span>
+      </div>
+      <div class="set-row">
+        <span data-t>새로고침<small data-t>홈 화면 앱용. 받아 둔 새 버전도 이때 반영</small></span>
+        <button class="btn" type="button" id="reload-btn" style="white-space: nowrap" data-t>다시 불러오기</button>
       </div>
     </div>
   </div>
@@ -454,9 +462,9 @@ a { color: var(--blue); text-decoration: none; }
   <div class="scrim"></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="upd-title">
     <div class="grab"></div>
-    <div class="panel-head"><b id="upd-title">새 일정이 있습니다</b></div>
-    <p class="rain-desc">일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.</p>
-    <div class="upd-acts"><button class="btn" type="button" id="upd-later">나중에</button><button class="btn fill" type="button" id="upd-now">새로고침</button></div>
+    <div class="panel-head"><b id="upd-title" data-t>새 일정이 있습니다</b></div>
+    <p class="rain-desc" data-t>일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.</p>
+    <div class="upd-acts"><button class="btn" type="button" id="upd-later" data-t>나중에</button><button class="btn fill" type="button" id="upd-now" data-t>새로고침</button></div>
   </div>
 </div>
 
@@ -464,8 +472,8 @@ a { color: var(--blue); text-decoration: none; }
   <div class="scrim" data-close></div>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="rain-title">
     <div class="grab"></div>
-    <div class="panel-head"><b id="rain-title">비 예보로 바뀐 일정</b><button class="btn" type="button" data-close>확인</button></div>
-    <p class="rain-desc">오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.</p>
+    <div class="panel-head"><b id="rain-title" data-t>비 예보로 바뀐 일정</b><button class="btn" type="button" data-close data-t>확인</button></div>
+    <p class="rain-desc" data-t>오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.</p>
     <div id="rain-body"></div>
   </div>
 </div>
@@ -485,6 +493,47 @@ a { color: var(--blue); text-decoration: none; }
   var weather = null;
   var current = 0;
   var io = null;
+
+  // 언어는 기기별 설정. 화면 문구는 아래 UI 사전, 일정 내용은 data/i18n.json (한국어 원문이 키)
+  var LANG_KEY = 'trip-lang';
+  var LANG = (function () { var l = load(LANG_KEY); return l === 'en' || l === 'ja' ? l : 'ko'; })();
+  var UI = {"en": {"히로시마 동선": "Hiroshima Trip", "히로시마": "Hiroshima", "10월 15일 ~ 19일": "Oct 15 ~ 19", "설정": "Settings", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "Offline. Showing the last downloaded plan and weather", "날짜": "Dates", "불러오는 중": "Loading", "현재 일정으로 이동": "Go to the current item", "이동": "Go", "닫기": "Close", "완료": "Done", "언어": "Language", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "All screen text and plan content. Saved on this device only", "인터랙션 효과": "Motion effects", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "Screen transitions and reveal effects. Saved on this device only", "새로고침": "Refresh", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "For the home screen app. Also applies any downloaded update", "다시 불러오기": "Reload", "새 일정이 있습니다": "New plan available", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "The plan, or a weather-based change to it, has been updated. Refresh now? If you tap Later, it applies automatically the next time you open the app.", "나중에": "Later", "비 예보로 바뀐 일정": "Changed for rain", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "Today's plan stays as is. Only later days were changed. Tap a date to see the new plan.", "맑음": "Clear", "대체로 맑음": "Mostly clear", "구름 조금": "Partly cloudy", "흐림": "Cloudy", "안개": "Fog", "이슬비": "Drizzle", "비": "Rain", "눈": "Snow", "소나기": "Showers", "뇌우": "Thunderstorm", "{t} 지도": "{t} map", "구글 지도": "Google Maps", "미리보기": "Preview", "구글 {n}": "Google {n}", "타베로그 {n}": "Tabelog {n}", "후기 요약": "Review summary", "좋은 점": "Pros", "아쉬운 점": "Cons", "추천": "Pick", "{n}엔": "{n} yen", "엔": " yen", "여러 곳 체크 가능": "Pick any", "하나 고르기": "Pick one", "낮음": "Low", "보통": "Moderate", "높음": "High", "매우 높음": "Very high", "위험": "Extreme", "지금, 체감 {t}": "Now, feels like {t}", "낮 최고 기온": "Daytime high", "최대 풍속": "Max wind", "평균 습도": "Avg humidity", "강수 확률": "Rain chance", "자외선": "UV", "최고 {t}": "H {t}", "최저 {t}": "L {t}", "지금": "Now", "오전 {h}시": "{h} AM", "오후 {h}시": "{h} PM", "{d} {p} 날씨": "{p} weather, {d}", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}, rain {r}, sunrise {a}, sunset {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "Hourly forecast will be added at the next update", "날씨": "Weather", "바람": "Wind", "습도": "Humidity", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "Wind in m/s. Rain chance in blue is at or above the {n}% rain threshold", "{t} 갱신, Open-Meteo 예보": "Updated {t}, Open-Meteo forecast", "{p} 날씨": "{p} weather", "이 날짜 예보가 아직 없음": "No forecast for this date yet", "날씨 데이터를 아직 불러오지 못함": "Weather data not loaded yet", "{t} 갱신": "Updated {t}", "시간별 보기": "Hourly", "없음": "None", "교통과 입장료": "Transport and admission", "식비 제외": "Excluding food", "노천탕": "Open-air bath", "하루 한 번": "Once a day", "날씨에 맞춰 날짜를 바꿨습니다": "Days swapped for the weather", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan from {o} because of rain", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan because of rain", "빠진 일정: {n}": "Dropped: {n}", "비 예보로 일정이 바뀌었습니다": "Plan changed for rain", "수건 챙기기": "Bring a towel", "일정": "Schedule", "지금  {t}": "Now  {t}", "다음  {a}  {t}": "Next  {a}  {t}", "오늘 마지막 일정": "Last item today", "지난 일정 펼치기": "Expand past item", "저장 장소 더보기": "More saved places", "{n}곳": "{n} places", "출발": "Dep", "도착": "Arr", "원래 {a} 일정에서 {b} 일정으로 바뀜": "Changed from {a} to {b}", "비 예보로 빠지는 일정: {n}": "Dropped for rain: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "Couldn't load the plan. Please check your network connection."}, "ja": {"히로시마 동선": "広島旅程", "히로시마": "広島", "10월 15일 ~ 19일": "10月15日〜19日", "설정": "設定", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "オフライン。最後に受け取った予定と天気を表示中", "날짜": "日付", "불러오는 중": "読み込み中", "현재 일정으로 이동": "現在の予定へ移動", "이동": "移動", "닫기": "閉じる", "완료": "完了", "언어": "言語", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "画面の文言と予定の内容すべて。この設定はこの端末にのみ保存", "인터랙션 효과": "アニメーション効果", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "画面切り替えと表示効果。この設定はこの端末にのみ保存", "새로고침": "更新", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "ホーム画面アプリ用。受け取った新しいバージョンもこのとき反映", "다시 불러오기": "再読み込み", "새 일정이 있습니다": "新しい予定があります", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "予定、または天気による予定変更が更新されました。今すぐ更新しますか？「あとで」を押すと、次にアプリを開いたときに自動で反映されます。", "나중에": "あとで", "비 예보로 바뀐 일정": "雨予報で変わった予定", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "今日の予定はそのままで、明日以降の予定だけ変更しました。日付を押すと変更後の予定へ移動します。", "맑음": "晴れ", "대체로 맑음": "おおむね晴れ", "구름 조금": "晴れ時々曇り", "흐림": "曇り", "안개": "霧", "이슬비": "霧雨", "비": "雨", "눈": "雪", "소나기": "にわか雨", "뇌우": "雷雨", "{t} 지도": "{t} 地図", "구글 지도": "Google マップ", "미리보기": "プレビュー", "구글 {n}": "Google {n}", "타베로그 {n}": "食べログ {n}", "후기 요약": "口コミ要約", "좋은 점": "良い点", "아쉬운 점": "気になる点", "추천": "おすすめ", "{n}엔": "{n}円", "엔": "円", "여러 곳 체크 가능": "複数選択可", "하나 고르기": "1つ選ぶ", "낮음": "弱い", "보통": "中程度", "높음": "強い", "매우 높음": "非常に強い", "위험": "極端に強い", "지금, 체감 {t}": "現在、体感 {t}", "낮 최고 기온": "日中の最高気温", "최대 풍속": "最大風速", "평균 습도": "平均湿度", "강수 확률": "降水確率", "자외선": "紫外線", "최고 {t}": "最高 {t}", "최저 {t}": "最低 {t}", "지금": "今", "오전 {h}시": "午前{h}時", "오후 {h}시": "午後{h}時", "{d} {p} 날씨": "{d} {p}の天気", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}、降水量 {r}、日の出 {a}、日の入り {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "時間別予報は次回の更新で追加されます", "날씨": "天気", "바람": "風", "습도": "湿度", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "風速は m/s、青い降水確率は雨判定基準の{n}%以上", "{t} 갱신, Open-Meteo 예보": "{t} 更新、Open-Meteo 予報", "{p} 날씨": "{p}の天気", "이 날짜 예보가 아직 없음": "この日の予報はまだありません", "날씨 데이터를 아직 불러오지 못함": "天気データをまだ読み込めていません", "{t} 갱신": "{t} 更新", "시간별 보기": "時間別", "없음": "なし", "교통과 입장료": "交通費と入場料", "식비 제외": "食費別", "노천탕": "露天風呂", "하루 한 번": "1日1回", "날씨에 맞춰 날짜를 바꿨습니다": "天気に合わせて日程を入れ替えました", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{o}の{b}の日程と入れ替え", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{b}の日程と入れ替え", "빠진 일정: {n}": "外した予定: {n}", "비 예보로 일정이 바뀌었습니다": "雨予報で予定を変更しました", "수건 챙기기": "タオルを持参", "일정": "予定", "지금  {t}": "今  {t}", "다음  {a}  {t}": "次  {a}  {t}", "오늘 마지막 일정": "今日最後の予定", "지난 일정 펼치기": "過ぎた予定を開く", "저장 장소 더보기": "保存した場所をもっと見る", "{n}곳": "{n}件", "출발": "出発", "도착": "到着", "원래 {a} 일정에서 {b} 일정으로 바뀜": "{a}から{b}に変更", "비 예보로 빠지는 일정: {n}": "雨予報で外す予定: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "予定を読み込めませんでした。ネットワーク接続を確認してください。"}};
+  function T(k, v) {
+    var s = (UI[LANG] && UI[LANG][k]) || k;
+    return v ? s.replace(/\{(\w)\}/g, function (m, n) { return v[n] == null ? m : v[n]; }) : s;
+  }
+  var I18N = null, rawPlan = null;
+  // 장소 ID, 검색어처럼 지도에 넘기는 값은 번역하지 않음
+  var KEEP = { pid: 1, q: 1, home: 1, from: 1, to: 1 };
+  function localize(o, k) {
+    if (typeof o === 'string') return KEEP[k] || LANG === 'ko' || !I18N || !I18N[LANG] ? o : (I18N[LANG][o] || o);
+    if (Array.isArray(o)) return o.map(function (x) { return localize(x, k); });
+    if (!o || typeof o !== 'object') return o;
+    var r = {};
+    Object.keys(o).forEach(function (key) { r[key] = localize(o[key], key); });
+    // 간식 선택 기록은 언어가 바뀌어도 이어지도록 한국어 원문 제목으로 저장
+    if (typeof (o.title || o.name) === 'string') r._k = o.title || o.name;
+    return r;
+  }
+  function sep() { return LANG === 'ja' ? '。' : '. '; }
+  function comma() { return LANG === 'ja' ? '、' : ', '; }
+  function applyStatic() {
+    document.documentElement.lang = LANG;
+    document.title = T('히로시마 동선');
+    Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (n) {
+      var t = n.firstChild;
+      if (!t || t.nodeType !== 3) return;
+      if (!n.getAttribute('data-t')) n.setAttribute('data-t', t.nodeValue);
+      t.nodeValue = T(n.getAttribute('data-t'));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ta]'), function (n) {
+      if (!n.getAttribute('data-ta')) n.setAttribute('data-ta', n.getAttribute('aria-label'));
+      n.setAttribute('aria-label', T(n.getAttribute('data-ta')));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#lang-seg button'), function (b) {
+      b.setAttribute('aria-checked', b.getAttribute('data-lang') === LANG ? 'true' : 'false');
+    });
+  }
 
   function el(tag, attrs, kids) {
     var n = document.createElement(tag);
@@ -520,6 +569,9 @@ a { color: var(--blue); text-decoration: none; }
   function toMin(t) { var m = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; }
 
   function wmo(c) {
+    return T(wmoKo(c));
+  }
+  function wmoKo(c) {
     if (c === 0) return '맑음'; if (c === 1) return '대체로 맑음'; if (c === 2) return '구름 조금'; if (c === 3) return '흐림';
     if (c === 45 || c === 48) return '안개'; if (c >= 51 && c <= 57) return '이슬비'; if (c >= 61 && c <= 67) return '비';
     if (c >= 71 && c <= 77) return '눈'; if (c >= 80 && c <= 82) return '소나기'; if (c >= 95) return '뇌우'; return '-';
@@ -559,7 +611,7 @@ a { color: var(--blue); text-decoration: none; }
 
   // 여러 정보가 한 줄에 몰리면 읽기 어려워서 문장 단위로 줄을 나눔
   function lines(cls, text) {
-    return el('div', { class: cls }, text.split(/\.\s+/).map(function (t) { return el('div', { text: t.replace(/\.$/, '') }); }));
+    return el('div', { class: cls }, text.split(/\.\s+|。/).filter(function (t) { return t.trim(); }).map(function (t) { return el('div', { text: t.replace(/\.$/, '') }); }));
   }
 
   var ICON = {
@@ -579,9 +631,9 @@ a { color: var(--blue); text-decoration: none; }
       '&waypoint_place_ids=' + via.map(function (v) { return v.pid; }).join('|');
     return u;
   }
-  function placeEmbed(pid) { return EMBED + 'place?key=' + window.MAPS_KEY + '&language=ko&zoom=16&q=place_id:' + pid; }
+  function placeEmbed(pid) { return EMBED + 'place?key=' + window.MAPS_KEY + '&language=' + LANG + '&zoom=16&q=place_id:' + pid; }
   function dirEmbed(from, to, mode, via) {
-    var u = EMBED + 'directions?key=' + window.MAPS_KEY + '&language=ko&origin=place_id:' + from + '&destination=place_id:' + to + '&mode=' + mode;
+    var u = EMBED + 'directions?key=' + window.MAPS_KEY + '&language=' + LANG + '&origin=place_id:' + from + '&destination=place_id:' + to + '&mode=' + mode;
     if (via) u += '&waypoints=' + via.map(function (v) { return 'place_id:' + v.pid; }).join('|');
     return u;
   }
@@ -601,15 +653,15 @@ a { color: var(--blue); text-decoration: none; }
     document.getElementById('map-title').textContent = title;
     var f = document.getElementById('map-frame');
     f.textContent = '';
-    f.appendChild(el('iframe', { src: src, referrerpolicy: 'no-referrer-when-downgrade', title: title + ' 지도' }));
+    f.appendChild(el('iframe', { src: src, referrerpolicy: 'no-referrer-when-downgrade', title: T('{t} 지도', { t: title }) }));
     openSheet('map-sheet');
   }
 
   function acts(title, link, embed) {
     var row = el('div', { class: 'acts' });
-    if (link) row.appendChild(el('a', { class: 'btn', href: link, target: '_blank', rel: 'noopener', text: '구글 지도' }));
+    if (link) row.appendChild(el('a', { class: 'btn', href: link, target: '_blank', rel: 'noopener', text: T('구글 지도') }));
     if (embed && window.MAPS_KEY) {
-      var b = el('button', { class: 'btn', type: 'button', text: '미리보기' });
+      var b = el('button', { class: 'btn', type: 'button', text: T('미리보기') });
       b.addEventListener('click', function () { showMap(title, embed); });
       row.appendChild(b);
     }
@@ -618,18 +670,18 @@ a { color: var(--blue); text-decoration: none; }
 
   function pills(s) {
     var box = el('div', { class: 'pills' });
-    if (s.g) box.appendChild(el('span', { class: 'pill g' }, ['구글 ' + s.g[0].toFixed(1), el('small', { text: '(' + yen(s.g[1]) + ')' })]));
-    if (s.tb) box.appendChild(el('span', { class: 'pill t' }, ['타베로그 ' + s.tb[0].toFixed(2), el('small', { text: '(' + yen(s.tb[1]) + ')' })]));
+    if (s.g) box.appendChild(el('span', { class: 'pill g' }, [T('구글 {n}', { n: s.g[0].toFixed(1) }), el('small', { text: '(' + yen(s.g[1]) + ')' })]));
+    if (s.tb) box.appendChild(el('span', { class: 'pill t' }, [T('타베로그 {n}', { n: s.tb[0].toFixed(2) }), el('small', { text: '(' + yen(s.tb[1]) + ')' })]));
     return box.childNodes.length ? box : null;
   }
 
   function reviews(s) {
     if (!s.pro && !s.con) return null;
     var wrap = el('div', { class: 'disc' });
-    var btn = el('button', { class: 'disc-btn', type: 'button', 'aria-expanded': 'false', html: '후기 요약 ' + ICON.chev });
+    var btn = el('button', { class: 'disc-btn', type: 'button', 'aria-expanded': 'false', html: T('후기 요약') + ' ' + ICON.chev });
     var inner = el('div');
-    if (s.pro) { inner.appendChild(el('div', { class: 'rv-cap', text: '좋은 점' })); inner.appendChild(el('ul', { class: 'rv-list pro' }, s.pro.map(function (t) { return el('li', { text: t }); }))); }
-    if (s.con) { inner.appendChild(el('div', { class: 'rv-cap', text: '아쉬운 점' })); inner.appendChild(el('ul', { class: 'rv-list con' }, s.con.map(function (t) { return el('li', { text: t }); }))); }
+    if (s.pro) { inner.appendChild(el('div', { class: 'rv-cap', text: T('좋은 점') })); inner.appendChild(el('ul', { class: 'rv-list pro' }, s.pro.map(function (t) { return el('li', { text: t }); }))); }
+    if (s.con) { inner.appendChild(el('div', { class: 'rv-cap', text: T('아쉬운 점') })); inner.appendChild(el('ul', { class: 'rv-list con' }, s.con.map(function (t) { return el('li', { text: t }); }))); }
     btn.addEventListener('click', function () {
       var open = wrap.classList.toggle('open');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -641,7 +693,7 @@ a { color: var(--blue); text-decoration: none; }
 
   function body(s) {
     var t = el('div', { class: 'title', text: s.name });
-    if (s.rec) t.appendChild(el('span', { class: 'rec', text: '추천' }));
+    if (s.rec) t.appendChild(el('span', { class: 'rec', text: T('추천') }));
     var b = el('div', null, [t, pills(s)]);
     if (s.note) b.appendChild(lines('note', s.note));
     if (s.tip) b.appendChild(lines('tip', s.tip));
@@ -653,7 +705,7 @@ a { color: var(--blue); text-decoration: none; }
 
   function head(s) {
     var h = el('div', { class: 'it-head' }, [el('span', { class: 'time', text: s.time || '' })]);
-    if (typeof s.cost === 'number' && s.cost > 0) h.appendChild(el('span', { class: 'cost', text: yen(s.cost) + '엔' }));
+    if (typeof s.cost === 'number' && s.cost > 0) h.appendChild(el('span', { class: 'cost', text: T('{n}엔', { n: yen(s.cost) }) }));
     return h;
   }
 
@@ -661,7 +713,7 @@ a { color: var(--blue); text-decoration: none; }
 
   function choiceCard(c, key) {
     var chosen = (load(PICK_KEY) || {})[key] || [];
-    var card = el('div', { class: 'card' }, [head(c), el('div', { class: 'choice-tag' }, [c.title, el('span', { class: 'choice-hint', text: c.multi ? '여러 곳 체크 가능' : '하나 고르기' })])]);
+    var card = el('div', { class: 'card' }, [head(c), el('div', { class: 'choice-tag' }, [c.title, el('span', { class: 'choice-hint', text: T(c.multi ? '여러 곳 체크 가능' : '하나 고르기') })])]);
     if (c.note) card.appendChild(lines('note', c.note));
     var box = el('div', { class: 'opts' + (c.multi ? ' multi' : '') + (chosen.length ? ' picked' : '') });
     c.options.forEach(function (o, oi) {
@@ -758,7 +810,7 @@ a { color: var(--blue); text-decoration: none; }
   }
   // 여행 당일 밤에는 지금 시각 기준으로 밤하늘 색을 씀
   function skyClass(day, w) { var v = heroValues(day, w); return v.night ? 'night' : sky(v.code); }
-  function uvLabel(v) { return v == null ? '' : v < 3 ? '낮음' : v < 6 ? '보통' : v < 8 ? '높음' : v < 11 ? '매우 높음' : '위험'; }
+  function uvLabel(v) { return v == null ? '' : T(v < 3 ? '낮음' : v < 6 ? '보통' : v < 8 ? '높음' : v < 11 ? '매우 높음' : '위험'); }
   function hourNight(w, h) {
     var rise = w.sunrise ? +w.sunrise.slice(0, 2) : 6, set = w.sunset ? +w.sunset.slice(0, 2) : 18;
     return h < rise || h > set;
@@ -772,9 +824,9 @@ a { color: var(--blue); text-decoration: none; }
     var now = jstNow();
     if (day.date === now.date && w.hours && w.hours.length) {
       var h = w.hours[Math.min(23, Math.floor(now.min / 60))];
-      return { big: h[1], sub: '지금, 체감 ' + num(h[2], '°'), code: h[5], night: hourNight(w, h[0]) };
+      return { big: h[1], sub: T('지금, 체감 {t}', { t: num(h[2], '°') }), code: h[5], night: hourNight(w, h[0]) };
     }
-    return { big: w.max, sub: '낮 최고 기온', code: w.code, night: false };
+    return { big: w.max, sub: T('낮 최고 기온'), code: w.code, night: false };
   }
   var MICON = {
     wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/></svg>',
@@ -783,8 +835,8 @@ a { color: var(--blue); text-decoration: none; }
     uv: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="#FFC531"/><path stroke="#FFC531" stroke-width="2" stroke-linecap="round" d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>'
   };
   function metrics(w) {
-    var items = [['wind', num(w.wind, 'm/s', 1), '최대 풍속'], ['hum', num(avgHum(w), '%'), '평균 습도'],
-      ['pop', num(w.pop, '%'), '강수 확률'], ['uv', w.uv == null ? '-' : w.uv.toFixed(1) + ' ' + uvLabel(w.uv), '자외선']];
+    var items = [['wind', num(w.wind, 'm/s', 1), T('최대 풍속')], ['hum', num(avgHum(w), '%'), T('평균 습도')],
+      ['pop', num(w.pop, '%'), T('강수 확률')], ['uv', w.uv == null ? '-' : w.uv.toFixed(1) + ' ' + uvLabel(w.uv), T('자외선')]];
     return el('div', { class: 'wx-metrics' }, items.map(function (m) {
       return el('div', { class: 'wx-m' }, [el('i', { html: MICON[m[0]] }), el('b', { text: m[1] }), el('span', { text: m[2] })]);
     }));
@@ -794,7 +846,7 @@ a { color: var(--blue); text-decoration: none; }
     return el('div', { class: 'wx-hero' + (big ? ' big' : '') }, [
       el('i', { class: 'wx-ic', html: wxIcon(v.code, v.night) }),
       el('div', { class: 'wx-t' }, [el('b', { text: num(v.big, '°') }), el('span', { text: v.sub })]),
-      el('div', { class: 'wx-hl' }, [el('span', { class: 'hi', text: '최고 ' + num(w.max, '°') }), el('span', { class: 'lo', text: '최저 ' + num(w.min, '°') })])
+      el('div', { class: 'wx-hl' }, [el('span', { class: 'hi', text: T('최고 {t}', { t: num(w.max, '°') }) }), el('span', { class: 'lo', text: T('최저 {t}', { t: num(w.min, '°') }) })])
     ]);
   }
 
@@ -811,7 +863,7 @@ a { color: var(--blue); text-decoration: none; }
     w.hours.forEach(function (h, i) {
       var cx = i * CW + CW / 2, y = 150 - (vals[i] - lo) / span * 34;
       pts.push(cx + ',' + y.toFixed(1));
-      var hh = h[0], label = hh === nowH ? '지금' : (hh < 12 ? '오전 ' : '오후 ') + (hh % 12 === 0 ? 12 : hh % 12) + '시';
+      var hh = h[0], label = hh === nowH ? T('지금') : T(hh < 12 ? '오전 {h}시' : '오후 {h}시', { h: hh % 12 === 0 ? 12 : hh % 12 });
       if (hh === nowH) out += '<rect x="' + (i * CW + 3) + '" y="2" width="' + (CW - 6) + '" height="' + (H - 4) + '" rx="12" fill="rgba(255,255,255,.12)"/>';
       out += '<text x="' + cx + '" y="18" class="t">' + label + '</text>';
       out += '<svg x="' + (cx - 16) + '" y="28" width="32" height="32" viewBox="0 0 64 64">' + wxIcon(h[5], hourNight(w, hh)).replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg>';
@@ -829,19 +881,19 @@ a { color: var(--blue); text-decoration: none; }
     var w = dayWeather(day);
     if (!w) return;
     var loc = plan.locations[day.weather];
-    document.getElementById('wx-title').textContent = day.label + ' ' + loc.name + ' 날씨';
+    document.getElementById('wx-title').textContent = T('{d} {p} 날씨', { d: day.label, p: loc.name });
     var box = document.getElementById('wx-body');
     box.textContent = '';
     var top = el('div', { class: 'wx-sky ' + skyClass(day, w) }, [
       hero(day, w, true),
-      el('div', { class: 'wx-line', text: wmo(w.code) + ', 강수량 ' + num(w.rain, 'mm', 1) + ', 일출 ' + (w.sunrise || '-') + ', 일몰 ' + (w.sunset || '-') }),
+      el('div', { class: 'wx-line', text: T('{c}, 강수량 {r}, 일출 {a}, 일몰 {b}', { c: wmo(w.code), r: num(w.rain, 'mm', 1), a: w.sunrise || '-', b: w.sunset || '-' }) }),
       metrics(w)
     ]);
     box.appendChild(top);
 
     var panel = el('div', { class: 'wx-panel' });
     if (!w.hours || !w.hours.length) {
-      panel.appendChild(el('p', { class: 'wx-empty', text: '시간별 예보는 다음 갱신 때 추가됩니다' }));
+      panel.appendChild(el('p', { class: 'wx-empty', text: T('시간별 예보는 다음 갱신 때 추가됩니다') }));
     } else {
       var seg = el('div', { class: 'wx-seg', role: 'tablist' });
       var strip = el('div', { class: 'wx-strip' });
@@ -850,21 +902,21 @@ a { color: var(--blue); text-decoration: none; }
         Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-k') === WX_TAB ? 'true' : 'false'); });
       };
       [['temp', '날씨'], ['wind', '바람'], ['hum', '습도']].forEach(function (t) {
-        var b = el('button', { type: 'button', role: 'tab', 'data-k': t[0], text: t[1] });
+        var b = el('button', { type: 'button', role: 'tab', 'data-k': t[0], text: T(t[1]) });
         b.addEventListener('click', function () { WX_TAB = t[0]; var x = strip.scrollLeft; draw(); strip.scrollLeft = x; });
         seg.appendChild(b);
       });
       panel.appendChild(seg);
       panel.appendChild(el('div', { class: 'wx-day', text: day.full }));
       panel.appendChild(strip);
-      panel.appendChild(el('p', { class: 'wx-note', text: '바람은 m/s, 파란 강수 확률은 비 판정 기준 ' + plan.rainThreshold + '% 이상' }));
+      panel.appendChild(el('p', { class: 'wx-note', text: T('바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상', { n: plan.rainThreshold }) }));
       draw();
       // 당일이면 지금 시각, 아니면 아침 6시부터 보이게
       var now = jstNow(), startH = day.date === now.date ? Math.max(0, Math.floor(now.min / 60) - 1) : 6;
       requestAnimationFrame(function () { strip.scrollLeft = startH * 58; });
     }
     box.appendChild(panel);
-    box.appendChild(el('p', { class: 'wx-upd', text: fmt(weather.updatedAt) + ' 갱신, Open-Meteo 예보' }));
+    box.appendChild(el('p', { class: 'wx-upd', text: T('{t} 갱신, Open-Meteo 예보', { t: fmt(weather.updatedAt) }) }));
     box.scrollTop = 0;
     openSheet('wx-sheet');
   }
@@ -874,15 +926,15 @@ a { color: var(--blue); text-decoration: none; }
     var w = dayWeather(day);
     if (!w) {
       return el('div', { class: 'wx wx-sky cloud rv' }, [
-        el('div', { class: 'wx-line', text: loc.name + ' 날씨' }),
-        el('div', { class: 'wx-foot', text: weather ? '이 날짜 예보가 아직 없음' : '날씨 데이터를 아직 불러오지 못함' })
+        el('div', { class: 'wx-line', text: T('{p} 날씨', { p: loc.name }) }),
+        el('div', { class: 'wx-foot', text: T(weather ? '이 날짜 예보가 아직 없음' : '날씨 데이터를 아직 불러오지 못함') })
       ]);
     }
     var card = el('div', { class: 'wx wx-sky tap rv ' + skyClass(day, w), role: 'button', tabindex: '0' }, [
       hero(day, w, false),
       el('div', { class: 'wx-line', text: wmo(w.code) + ', ' + loc.name }),
       metrics(w),
-      el('div', { class: 'wx-foot' }, [fmt(weather.updatedAt) + ' 갱신', el('span', { class: 'wx-more', text: '시간별 보기' })])
+      el('div', { class: 'wx-foot' }, [T('{t} 갱신', { t: fmt(weather.updatedAt) }), el('span', { class: 'wx-more', text: T('시간별 보기') })])
     ]);
     card.addEventListener('click', function () { showWeather(day); });
     card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showWeather(day); } });
@@ -903,7 +955,7 @@ a { color: var(--blue); text-decoration: none; }
 
   function onsenName(stops) {
     for (var i = 0; i < stops.length; i++) if (stops[i].pid && plan.onsenPids.indexOf(stops[i].pid) !== -1) return stops[i].name;
-    return '없음';
+    return T('없음');
   }
 
   // 애플 제품 페이지처럼 화면에 들어올 때 하나씩 떠오르는 등장 효과
@@ -959,27 +1011,28 @@ a { color: var(--blue); text-decoration: none; }
     if (day.point) hero.appendChild(el('span', { class: 'point', text: day.point }));
     main.appendChild(hero);
 
-    var num = el('div', { class: 'v', 'data-count': String(dayCost(day.stops)) }, ['0', el('small', { text: '엔' })]);
+    var num = el('div', { class: 'v', 'data-count': String(dayCost(day.stops)) }, ['0', el('small', { text: T('엔') })]);
     main.appendChild(el('div', { class: 'stats' }, [
-      el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: '교통과 입장료' }), num, el('div', { class: 's', text: '식비 제외' })]),
-      el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: '노천탕' }), el('div', { class: 'v txt', text: onsenName(day.stops) }), el('div', { class: 's', text: '하루 한 번' })])
+      el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: T('교통과 입장료') }), num, el('div', { class: 's', text: T('식비 제외') })]),
+      el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: T('노천탕') }), el('div', { class: 'v txt', text: onsenName(day.stops) }), el('div', { class: 's', text: T('하루 한 번') })])
     ]));
 
     main.appendChild(weatherCard(day));
     if (day.swapped) {
-      main.appendChild(notice('rain', ICON.rain, '날씨에 맞춰 날짜를 바꿨습니다', lines('',
-        '원래 이 날은 ' + day.defaultTitle + ' 일정. 비 예보 때문에 ' + (day.origin ? day.origin.label + '의 ' : '') + day.title + ' 일정과 맞바꿈')));
+      main.appendChild(notice('rain', ICON.rain, T('날씨에 맞춰 날짜를 바꿨습니다'), lines('',
+        T(day.origin ? '원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈' : '원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈',
+          { a: day.defaultTitle, b: day.title, o: day.origin && day.origin.label }))));
     }
     if (day.rainy) {
       var rainBox = el('div', null, [lines('', day.rainNote)]);
-      if (day.skipped.length) rainBox.appendChild(el('ul', null, day.skipped.map(function (s) { return el('li', { text: '빠진 일정: ' + (s.name || s.title) }); })));
-      main.appendChild(notice('rain', ICON.rain, '비 예보로 일정이 바뀌었습니다', rainBox));
+      if (day.skipped.length) rainBox.appendChild(el('ul', null, day.skipped.map(function (s) { return el('li', { text: T('빠진 일정: {n}', { n: s.name || s.title }) }); })));
+      main.appendChild(notice('rain', ICON.rain, T('비 예보로 일정이 바뀌었습니다'), rainBox));
     }
-    if (day.towel) main.appendChild(notice('towel', ICON.towel, '수건 챙기기', lines('', day.towel)));
+    if (day.towel) main.appendChild(notice('towel', ICON.towel, T('수건 챙기기'), lines('', day.towel)));
 
-    main.appendChild(el('div', { class: 'sec', text: '일정' }));
-    main.appendChild(el('ol', { class: 'tl' }, day.stops.map(function (s) { return item(s, day.date + ':' + day.key + ':' + (s.title || s.name)); })));
-    main.appendChild(el('p', { class: 'foot', text: plan.onsenTip + '. ' + plan.ratingNote }));
+    main.appendChild(el('div', { class: 'sec', text: T('일정') }));
+    main.appendChild(el('ol', { class: 'tl' }, day.stops.map(function (s) { return item(s, day.date + ':' + day.key + ':' + (s._k || s.title || s.name)); })));
+    main.appendChild(el('p', { class: 'foot', text: plan.onsenTip + sep() + plan.ratingNote }));
     return day;
   }
 
@@ -1017,21 +1070,21 @@ a { color: var(--blue); text-decoration: none; }
       if (th === -1) { cap.classList.remove('show'); return; }
       var ts = tv.stops[th], tn = null;
       for (var k = th + 1; k < tv.stops.length; k++) if (toMin(tv.stops[k].time) != null) { tn = tv.stops[k]; break; }
-      cap.querySelector('.a').textContent = '지금  ' + (ts.title || ts.name);
-      cap.querySelector('.b').textContent = tn ? '다음  ' + tn.time + '  ' + (tn.title || tn.name) : '오늘 마지막 일정';
+      cap.querySelector('.a').textContent = T('지금  {t}', { t: ts.title || ts.name });
+      cap.querySelector('.b').textContent = tn ? T('다음  {a}  {t}', { a: tn.time, t: tn.title || tn.name }) : T('오늘 마지막 일정');
       cap.classList.add('show');
       cap.onclick = function () { renderDay(ti, ti > current ? 1 : -1); markNow('smooth'); };
       return;
     }
     var cur = rows[hit];
     cur.classList.add('now');
-    cur.querySelector('.time').appendChild(el('span', { class: 'now-chip', text: '지금' }));
+    cur.querySelector('.time').appendChild(el('span', { class: 'now-chip', text: T('지금') }));
     var next = null;
     for (var j = hit + 1; j < rows.length; j++) if (rows[j].getAttribute('data-min') !== '') { next = rows[j]; break; }
     var t = cur.querySelector('.choice-tag') || cur.querySelector('.title');
-    cap.querySelector('.a').textContent = '지금  ' + t.firstChild.textContent;
+    cap.querySelector('.a').textContent = T('지금  {t}', { t: t.firstChild.textContent });
     var nt = next && (next.querySelector('.choice-tag') || next.querySelector('.title'));
-    cap.querySelector('.b').textContent = next ? '다음  ' + next.getAttribute('data-min').replace(/^(\d+)$/, function (m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }) + '  ' + nt.firstChild.textContent : '오늘 마지막 일정';
+    cap.querySelector('.b').textContent = next ? T('다음  {a}  {t}', { a: next.getAttribute('data-min').replace(/^(\d+)$/, function (m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }), t: nt.firstChild.textContent }) : T('오늘 마지막 일정');
     // 현재 일정이 화면에 보이는 동안은 캡슐을 숨기고, 스크롤해서 벗어나면 보여줌 (상단 날짜 바에 가려진 부분은 안 보이는 것으로 봄)
     if ('IntersectionObserver' in window) {
       capIo = new IntersectionObserver(function (es) {
@@ -1052,10 +1105,10 @@ a { color: var(--blue); text-decoration: none; }
     if (!past) { r.classList.remove('past', 'open'); if (sum) sum.remove(); return; }
     r.classList.add('past');
     if (sum) return;
-    sum = el('button', { class: 'past-sum', type: 'button', 'aria-label': '지난 일정 펼치기' }, [
+    sum = el('button', { class: 'past-sum', type: 'button', 'aria-label': T('지난 일정 펼치기') }, [
       el('span', { class: 'time', text: r.querySelector('.time').firstChild.textContent }),
       el('span', { class: 't', text: labelOf(r) }),
-      el('span', { class: 'done', text: '완료' })
+      el('span', { class: 'done', text: T('완료') })
     ]);
     sum.addEventListener('click', function () { togglePast(r, true); });
     r.querySelector('.it-head').addEventListener('click', function () { if (r.classList.contains('open')) togglePast(r, false); });
@@ -1140,9 +1193,9 @@ a { color: var(--blue); text-decoration: none; }
   function renderExtras() {
     var box = document.getElementById('extras');
     box.textContent = '';
-    box.appendChild(el('div', { class: 'sec', text: '저장 장소 더보기' }));
+    box.appendChild(el('div', { class: 'sec', text: T('저장 장소 더보기') }));
     plan.extras.forEach(function (g) {
-      var d = el('details', { class: 'ex rv' }, [el('summary', null, [g.title, el('span', { text: g.items.length + '곳' })])]);
+      var d = el('details', { class: 'ex rv' }, [el('summary', null, [g.title, el('span', { text: T('{n}곳', { n: g.items.length }) })])]);
       g.items.forEach(function (s) { d.appendChild(el('div', { class: 'card' }, [body(s)])); });
       box.appendChild(d);
     });
@@ -1155,7 +1208,7 @@ a { color: var(--blue); text-decoration: none; }
     plan.flights.forEach(function (f) {
       box.appendChild(el('div', { class: 'row' }, [
         el('div', { class: 'k' }, [el('b', { text: f.label }), f.date]),
-        el('div', null, [el('div', { class: 'leg' }, [el('span', { text: '출발' }), f.dep]), el('div', { class: 'leg' }, [el('span', { text: '도착' }), f.arr])])
+        el('div', null, [el('div', { class: 'leg' }, [el('span', { text: T('출발') }), f.dep]), el('div', { class: 'leg' }, [el('span', { text: T('도착') }), f.arr])])
       ]));
     });
   }
@@ -1216,11 +1269,11 @@ a { color: var(--blue); text-decoration: none; }
     box.textContent = '';
     changed.forEach(function (v) {
       var parts = [];
-      if (v.swapped) parts.push('원래 ' + v.defaultTitle + ' 일정에서 ' + v.title + ' 일정으로 바뀜');
-      if (v.rainy) parts.push(v.skipped.length ? '비 예보로 빠지는 일정: ' + v.skipped.map(function (s) { return s.name || s.title; }).join(', ') : v.rainNote);
+      if (v.swapped) parts.push(T('원래 {a} 일정에서 {b} 일정으로 바뀜', { a: v.defaultTitle, b: v.title }));
+      if (v.rainy) parts.push(v.skipped.length ? T('비 예보로 빠지는 일정: {n}', { n: v.skipped.map(function (s) { return s.name || s.title; }).join(comma()) }) : v.rainNote);
       var b = el('button', { class: 'rain-day', type: 'button' }, [
         el('b', { text: v.label + ' ' + v.title }),
-        el('span', { text: parts.join('. ') })
+        el('span', { text: parts.join(sep()) })
       ]);
       b.addEventListener('click', function () {
         closeSheet(document.getElementById('rain-sheet'));
@@ -1242,6 +1295,21 @@ a { color: var(--blue); text-decoration: none; }
   document.getElementById('motion-toggle').addEventListener('change', function (e) {
     applyMotion(e.target.checked); save(MOTION_KEY, e.target.checked);
     if (plan) renderDay(current, 0, true);
+  });
+  // 언어를 바꾸면 화면 문구와 일정 내용을 그 자리에서 다시 그림 (스크롤 위치 유지)
+  Array.prototype.forEach.call(document.querySelectorAll('#lang-seg button'), function (b) {
+    b.addEventListener('click', function () {
+      var l = b.getAttribute('data-lang');
+      if (l === LANG) return;
+      LANG = l; save(LANG_KEY, l);
+      applyStatic();
+      if (!rawPlan) return;
+      plan = localize(rawPlan);
+      renderFlights();
+      Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (t, i) { t.textContent = plan.days[i].label; });
+      renderDay(current, 0, true, true);
+      renderExtras();
+    });
   });
   document.getElementById('open-set').addEventListener('click', function () { openSheet('set-sheet'); });
   Array.prototype.forEach.call(document.querySelectorAll('[data-close]'), function (n) {
@@ -1373,8 +1441,13 @@ a { color: var(--blue); text-decoration: none; }
   function net() { document.getElementById('net').hidden = navigator.onLine; }
   window.addEventListener('online', net); window.addEventListener('offline', net); net();
 
-  fetch('data/plan.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(init).catch(function () {
-    document.getElementById('day').textContent = '일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.';
+  // 언어를 바꿀 때 바로 쓸 수 있도록 번역 파일도 함께 받아 둠 (없거나 실패하면 한국어로 표시)
+  applyStatic();
+  Promise.all([
+    fetch('data/plan.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }),
+    fetch('data/i18n.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+  ]).then(function (a) { I18N = a[1]; rawPlan = a[0]; init(localize(rawPlan)); }).catch(function () {
+    document.getElementById('day').textContent = T('일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.');
   });
 
   // 오프라인에서도 쓰도록 서비스 워커가 마지막으로 받은 화면과 데이터를 보관함.
