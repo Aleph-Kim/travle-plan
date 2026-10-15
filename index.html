@@ -33,6 +33,7 @@
   --bg: #f5f5f7;
   --card: #ffffff;
   --fill: rgba(118, 118, 128, .12);
+  --shine: rgba(255, 255, 255, .55);
   --ink: #1d1d1f;
   --ink2: #6e6e73;
   --ink3: #86868b;
@@ -53,6 +54,7 @@
     --bg: #000000;
     --card: #1c1c1e;
     --fill: rgba(118, 118, 128, .24);
+    --shine: rgba(255, 255, 255, .08);
     --ink: #f5f5f7;
     --ink2: #a1a1a6;
     --ink3: #86868b;
@@ -152,6 +154,24 @@ a { color: var(--blue); text-decoration: none; }
   content: ""; position: absolute; inset: -6px; border-radius: 50%; background: var(--green); opacity: .35;
   animation: pulse 2s var(--ease) infinite;
 }
+/* 첫 로딩 동안 보이는 자리표시. 효과를 끄면 빛 흐름 없이 회색 상자만 */
+.skel { padding: 22px 4px 0; }
+.sk { position: relative; overflow: hidden; background: var(--fill); border-radius: 12px; }
+.motion .sk::after {
+  content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--shine), transparent);
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+.sk-eyebrow { width: 38%; height: 14px; border-radius: 7px; }
+.sk-title { width: 52%; height: 32px; margin-top: 8px; border-radius: 10px; }
+.sk-point { width: 34%; height: 24px; margin-top: 10px; border-radius: 999px; }
+.sk-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.sk-stat { height: 92px; border-radius: 14px; }
+.sk-wx { height: 210px; margin-top: 12px; border-radius: 18px; }
+.sk-sec { width: 22%; height: 22px; margin: 26px 0 12px; border-radius: 8px; }
+.sk-card { height: 120px; margin: 0 0 12px 22px; border-radius: 16px; }
+.sk-line { width: 60%; height: 44px; margin: 0 0 12px 22px; border-radius: 10px; }
 @keyframes pulse { 0% { transform: scale(.6); opacity: .45; } 100% { transform: scale(1.8); opacity: 0; } }
 .it.past { opacity: .5; }
 .card { background: var(--card); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
@@ -346,7 +366,20 @@ a { color: var(--blue); text-decoration: none; }
   <div class="bar-title" id="bar-title"></div>
   <div class="seg" id="tabs" role="tablist" aria-label="날짜"><div class="seg-pill" id="pill"></div></div>
 </nav>
-<main id="day"></main>
+<main id="day">
+  <div class="skel" aria-label="불러오는 중">
+    <div class="sk sk-eyebrow"></div>
+    <div class="sk sk-title"></div>
+    <div class="sk sk-point"></div>
+    <div class="sk-row"><div class="sk sk-stat"></div><div class="sk sk-stat"></div></div>
+    <div class="sk sk-wx"></div>
+    <div class="sk sk-sec"></div>
+    <div class="sk sk-card"></div>
+    <div class="sk sk-line"></div>
+    <div class="sk sk-card"></div>
+    <div class="sk sk-card"></div>
+  </div>
+</main>
 <section id="extras"></section>
 <button id="nowcap" type="button" aria-label="현재 일정으로 이동"><span class="a"></span><span class="go">이동</span><span class="b"></span></button>
 
@@ -932,7 +965,7 @@ a { color: var(--blue); text-decoration: none; }
     cap.querySelector('.b').textContent = next ? '다음  ' + next.getAttribute('data-min').replace(/^(\d+)$/, function (m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }) + '  ' + nt.firstChild.textContent : '오늘 마지막 일정';
     cap.classList.add('show');
     cap.onclick = function () { scrollUnderBar(cur, motionOn(), 12); };
-    if (scroll) scrollUnderBar(cur, false, 12);
+    if (scroll) scrollUnderBar(cur, scroll === 'smooth' && motionOn(), 12);
   }
 
   // 고정된 날짜 바는 붙은 상태에서 offsetTop 이 스크롤 값과 같아져 기준이 될 수 없어서, 날짜 본문 위치에서 바 높이만큼 뺀 곳으로 이동
@@ -946,8 +979,18 @@ a { color: var(--blue); text-decoration: none; }
     for (var n = target; n; n = n.offsetParent) top += n.offsetTop;
     var y = Math.max(0, top - bar.offsetHeight - (gap || 0));
     lastAutoY = y;
-    window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
     requestAnimationFrame(function () { bar.classList.remove('snap'); });
+    if (!smooth) { window.scrollTo(0, y); return; }
+    // 브라우저 기본 부드러운 스크롤은 시간이 길고 기기마다 달라서, 거리와 상관없이 0.45초 안에 끝나도록 직접 움직임
+    var from = window.scrollY, dist = y - from, t0 = null, D = 450;
+    var ease = function (t) { return 1 - Math.pow(1 - t, 3); };
+    var step = function (ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / D);
+      window.scrollTo(0, from + dist * ease(k));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
   function toDayTop() { scrollUnderBar(document.getElementById('day'), false); }
 
@@ -1005,7 +1048,7 @@ a { color: var(--blue); text-decoration: none; }
       if (drawn) return;
       drawn = true;
       renderDay(todayIndex(), 0);
-      markNow(true);
+      markNow('smooth');
       renderExtras();
       setInterval(function () { markNow(false); }, 60000);
     };
