@@ -1057,12 +1057,32 @@ a { color: var(--blue); text-decoration: none; }
       el('span', { class: 't', text: labelOf(r) }),
       el('span', { class: 'done', text: '완료' })
     ]);
-    sum.addEventListener('click', function () { r.classList.add('open'); progress(document.querySelector('#day .it.now')); });
-    r.querySelector('.it-head').addEventListener('click', function () {
-      if (!r.classList.contains('open')) return;
-      r.classList.remove('open'); progress(document.querySelector('#day .it.now'));
-    });
+    sum.addEventListener('click', function () { togglePast(r, true); });
+    r.querySelector('.it-head').addEventListener('click', function () { if (r.classList.contains('open')) togglePast(r, false); });
     r.insertBefore(sum, r.querySelector('.card'));
+  }
+
+  // 지난 일정 펼치기: 카드가 한 줄 높이에서 늘어나며 나타나고, 접기: 줄어들며 한 줄 요약으로 돌아감
+  function togglePast(r, open) {
+    var card = r.querySelector('.card'), sum = r.querySelector('.past-sum');
+    var now = function () { progress(document.querySelector('#day .it.now')); };
+    var anim = motionOn() && card.animate;
+    if (open) {
+      var h0 = sum.offsetHeight;
+      r.classList.add('open'); now();
+      if (!anim) return;
+      var h1 = card.offsetHeight;
+      card.style.overflow = 'hidden';
+      card.animate([{ height: h0 + 'px', opacity: 0 }, { opacity: 0, offset: 0.3 }, { height: h1 + 'px', opacity: 1 }],
+        { duration: 300, easing: 'cubic-bezier(.22,1,.36,1)' }).onfinish = function () { card.style.overflow = ''; };
+      return;
+    }
+    if (!anim) { r.classList.remove('open'); now(); return; }
+    var full = card.offsetHeight;
+    r.classList.remove('open'); var h = sum.offsetHeight; r.classList.add('open');
+    card.style.overflow = 'hidden';
+    card.animate([{ height: full + 'px', opacity: 1 }, { height: h + 'px', opacity: 0 }],
+      { duration: 250, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = function () { card.style.overflow = ''; r.classList.remove('open'); now(); };
   }
 
   // 타임라인 선을 처음부터 지금 일정의 점까지 초록으로 채워 진행 정도를 보여줌
