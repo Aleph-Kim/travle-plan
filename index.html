@@ -75,10 +75,11 @@ html, body { overscroll-behavior: none; overflow-x: clip; }
 /* 맨 위에서 끌어내리면 화면이 따라 내려오며 새로고침 안내가 위에서 드러남 */
 body { position: relative; }
 body::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 200px; background: var(--bg); }
-#ptr { position: absolute; z-index: 1; left: 0; right: 0; top: -48px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; color: var(--ink2); }
-#ptr svg { width: 18px; height: 18px; transition: transform .2s; }
-#ptr.ready svg { transform: rotate(180deg); }
-#ptr.load svg { animation: spin .8s linear infinite; }
+/* iOS 기본 새로고침처럼 당기는 만큼 살이 하나씩 나타나고, 불러오는 동안 12단계로 회전 */
+#ptr { position: absolute; z-index: 1; left: 0; right: 0; top: -58px; height: 52px; display: flex; align-items: center; justify-content: center; color: var(--ink2); }
+#ptr svg { width: 28px; height: 28px; }
+#ptr rect { opacity: 0; transition: opacity .12s; }
+#ptr.load svg { animation: spin .9s steps(12) infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 html { touch-action: manipulation; }
 button, .btn, .seg, #nowcap, .past-sum, .wx.tap, summary { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -381,7 +382,7 @@ a { color: var(--blue); text-decoration: none; }
 </style>
 </head>
 <body>
-<div id="ptr" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg><span>당겨서 새로고침</span></div>
+<div id="ptr" aria-hidden="true"><svg viewBox="0 0 28.6 28" fill="currentColor"><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(0 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(30 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(60 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(90 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(120 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(150 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(180 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(210 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(240 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(270 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(300 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(330 14.3 14)"/></svg></div>
 <header class="hero">
   <div>
     <h1>히로시마</h1>
@@ -1311,7 +1312,7 @@ a { color: var(--blue); text-decoration: none; }
   })();
 
   (function () {
-    var y0 = null, x0 = 0, pull = 0, mode = null, ptr = document.getElementById('ptr'), label = ptr.querySelector('span');
+    var y0 = null, x0 = 0, pull = 0, mode = null, ptr = document.getElementById('ptr'), ticks = ptr.querySelectorAll('rect');
     var LIMIT = 70;
     var move = function (y, ms) {
       document.body.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.22,1,.36,1)' : 'none';
@@ -1329,15 +1330,15 @@ a { color: var(--blue); text-decoration: none; }
       e.preventDefault();
       pull = Math.min(140, Math.max(0, dy) * 0.45);
       move(pull, 0);
-      ptr.classList.toggle('ready', pull >= LIMIT);
-      label.textContent = pull >= LIMIT ? '놓으면 새로고침' : '당겨서 새로고침';
+      var n = Math.min(12, Math.ceil(12 * pull / LIMIT));
+      Array.prototype.forEach.call(ticks, function (r, k) { r.style.opacity = k < n ? (0.25 + 0.75 * k / 11).toFixed(2) : 0; });
     }, { passive: false });
     document.addEventListener('touchend', function () {
       if (y0 === null) return;
       y0 = null;
       if (mode !== 'pull') return;
       if (pull >= LIMIT) {
-        ptr.classList.remove('ready'); ptr.classList.add('load'); label.textContent = '불러오는 중';
+        ptr.classList.add('load');
         move(56, 200);
         setTimeout(function () { location.reload(); }, 250);
       } else move(0, 250);
