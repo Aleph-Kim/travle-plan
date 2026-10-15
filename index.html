@@ -199,6 +199,7 @@ a { color: var(--blue); text-decoration: none; }
 .it.past:not(.open) .dot { top: 9px; }
 .it.past .dot::after { content: ''; position: absolute; left: 5.5px; top: 2.5px; width: 3.5px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
 .it.past.open .it-head { cursor: pointer; }
+.day-peek { position: absolute; pointer-events: none; padding: 0 16px; }
 .tl-done { position: absolute; left: 6px; top: var(--tl-top, 8px); width: 2px; border-radius: 1px; background: var(--green); }
 .motion .tl-done { transition: height .4s var(--ease); }
 .card { background: var(--card); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
@@ -931,12 +932,28 @@ a { color: var(--blue); text-decoration: none; }
   function renderDay(i, dir, keepScroll, quiet) {
     var y = window.scrollY;
     current = i;
-    var day = view(plan.days[i]);
     moveTabs(i);
-
     var main = document.getElementById('day');
     main.textContent = '';
+    fillDay(main, i);
 
+    if (dir && motionOn() && main.animate) {
+      main.animate([{ transform: 'translateX(' + (dir * 100) + '%)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
+    }
+    if (keepScroll) window.scrollTo(0, y);
+    if (quiet) settle(main); else reveal(main);
+    markNow(false);
+  }
+
+  // 등장 효과 없이 바로 최종 모습으로 (조용한 갱신, 스와이프 미리보기)
+  function settle(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('.rv'), function (n) { n.classList.add('in'); });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-count]'), function (n) { n.firstChild.nodeValue = yen(+n.getAttribute('data-count')); });
+  }
+
+  // 그날 화면 내용을 주어진 상자에 채움 (본 화면과 스와이프 때 옆에 보이는 미리보기가 같은 모습이 되도록 공용)
+  function fillDay(main, i) {
+    var day = view(plan.days[i]);
     var hero = el('div', { class: 'day-hero rv' }, [el('div', { class: 'eyebrow', text: day.full }), el('h2', { text: day.title })]);
     if (day.point) hero.appendChild(el('span', { class: 'point', text: day.point }));
     main.appendChild(hero);
@@ -962,16 +979,7 @@ a { color: var(--blue); text-decoration: none; }
     main.appendChild(el('div', { class: 'sec', text: '일정' }));
     main.appendChild(el('ol', { class: 'tl' }, day.stops.map(function (s) { return item(s, day.date + ':' + day.key + ':' + (s.title || s.name)); })));
     main.appendChild(el('p', { class: 'foot', text: plan.onsenTip + '. ' + plan.ratingNote }));
-
-    if (dir && motionOn() && main.animate) {
-      main.animate([{ transform: 'translateX(' + (dir * 100) + '%)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
-    }
-    if (keepScroll) window.scrollTo(0, y);
-    if (quiet) {
-      Array.prototype.forEach.call(main.querySelectorAll('.rv'), function (n) { n.classList.add('in'); });
-      Array.prototype.forEach.call(main.querySelectorAll('[data-count]'), function (n) { n.firstChild.nodeValue = yen(+n.getAttribute('data-count')); });
-    } else reveal(main);
-    markNow(false);
+    return day;
   }
 
   function moveTabs(i) {
@@ -1225,14 +1233,36 @@ a { color: var(--blue); text-decoration: none; }
     if (ticking) return; ticking = true;
     requestAnimationFrame(function () { bar.classList.toggle('stuck', bar.getBoundingClientRect().top <= 0); ticking = false; });
   }, { passive: true });
-  // 좌우로 밀면 그날 화면 전체가 손가락을 따라 움직이고, 충분히 밀면 다음 날짜로 넘어감 (세로 스크롤과 구분)
+  // 좌우로 밀면 그날 화면이 손가락을 따라 움직이고, 옆에는 넘어갈 날짜 화면이 미리 채워져 함께 따라옴
   (function () {
     var main = document.getElementById('day');
-    var x0 = null, y0 = 0, dx = 0, lock = null, t0 = 0;
+    var x0 = null, y0 = 0, dx = 0, lock = null, t0 = 0, peek = null, peekI = -1;
     var W = function () { return main.offsetWidth || window.innerWidth; };
-    var set = function (x, ms) {
-      main.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.22,1,.36,1)' : 'none';
-      main.style.transform = x ? 'translateX(' + x + 'px)' : '';
+    var bar = function () { return document.getElementById('bar').offsetHeight; };
+    var docTop = function (n) { var t = 0; for (; n; n = n.offsetParent) t += n.offsetTop; return t; };
+    // 넘어간 뒤 화면 맨 위가 될 위치: 이미 내려와 있으면 날짜 바 바로 아래, 아니면 지금 날짜 화면의 시작 위치
+    var targetTop = function () { return Math.max(docTop(main), window.scrollY + bar()); };
+    var move = function (x, ms) {
+      var tr = ms ? 'transform ' + ms + 'ms cubic-bezier(.22,1,.36,1)' : 'none';
+      main.style.transition = tr; main.style.transform = x ? 'translateX(' + x + 'px)' : '';
+      if (peek) { peek.style.transition = tr; peek.style.transform = 'translateX(' + x + 'px)'; }
+    };
+    var dropPeek = function () { if (peek) peek.remove(); peek = null; peekI = -1; };
+    var makePeek = function (i, dir) {
+      dropPeek();
+      peek = el('div', { class: 'day-peek', 'aria-hidden': 'true' });
+      peek.style.top = targetTop() + 'px';
+      peek.style.left = (main.offsetLeft + dir * W()) + 'px';
+      peek.style.width = W() + 'px';
+      fillDay(peek, i);
+      settle(peek);
+      if (plan.days[i].date === jstNow().date) {
+        var now = jstNow().min, rows = peek.querySelectorAll('.it'), hit = -1;
+        Array.prototype.forEach.call(rows, function (r, j) { var m = r.getAttribute('data-min'); if (m !== '' && +m <= now) hit = j; });
+        Array.prototype.forEach.call(rows, function (r, j) { setPast(r, j < hit); });
+      }
+      document.body.appendChild(peek);
+      peekI = i;
     };
     main.addEventListener('touchstart', function (e) {
       if (!plan || e.touches.length !== 1 || e.target.closest('.wx-strip, input, iframe')) { x0 = null; return; }
@@ -1244,30 +1274,42 @@ a { color: var(--blue); text-decoration: none; }
       if (lock === null && (Math.abs(mx) > 10 || Math.abs(my) > 10)) lock = Math.abs(mx) > Math.abs(my) * 1.2 ? 'x' : 'y';
       if (lock !== 'x') return;
       e.preventDefault();
-      var edge = (mx > 0 && current === 0) || (mx < 0 && current === plan.days.length - 1);
+      if (!motionOn()) { dx = mx; return; }
+      var dir = mx < 0 ? 1 : -1, i = current + dir;
+      var edge = i < 0 || i >= plan.days.length;
+      if (edge) dropPeek(); else if (peekI !== i) makePeek(i, dir);
       dx = edge ? mx * 0.3 : mx;
-      if (motionOn()) set(dx, 0);
+      move(dx, 0);
     }, { passive: false });
     var end = function () {
       if (x0 === null) return;
       x0 = null;
       if (lock !== 'x') return;
       var fast = Math.abs(dx) > 30 && Date.now() - t0 < 250;
-      var i = current + (dx < 0 ? 1 : -1);
-      if ((Math.abs(dx) < W() * 0.25 && !fast) || i < 0 || i >= plan.days.length) { set(0, motionOn() ? 260 : 0); return; }
-      var dir = dx < 0 ? 1 : -1;
-      if (!motionOn()) { renderDay(i, 0); toDayTop(); return; }
-      set(-dir * W(), 200);
-      setTimeout(function () {
-        renderDay(i, 0);
-        toDayTop();
-        set(dir * W(), 0);
-        requestAnimationFrame(function () { requestAnimationFrame(function () { set(0, 300); }); });
-      }, 200);
+      var dir = dx < 0 ? 1 : -1, i = current + dir;
+      if ((Math.abs(dx) < W() * 0.25 && !fast) || i < 0 || i >= plan.days.length) {
+        move(0, motionOn() ? 260 : 0);
+        setTimeout(dropPeek, 280);
+        return;
+      }
+      var top = targetTop();
+      var finish = function () {
+        var keep = window.scrollY;
+        renderDay(i, 0, false, true);
+        move(0, 0);
+        dropPeek();
+        // 미리보기가 있던 자리 그대로 이어지도록 스크롤을 맞춤
+        window.scrollTo(0, keep + (docTop(main) - top));
+      };
+      if (!motionOn()) { finish(); return; }
+      if (peekI !== i) makePeek(i, dir);
+      move(-dir * W(), 240);
+      setTimeout(finish, 250);
     };
     main.addEventListener('touchend', end, { passive: true });
-    main.addEventListener('touchcancel', function () { if (x0 !== null) { x0 = null; set(0, 200); } }, { passive: true });
+    main.addEventListener('touchcancel', function () { if (x0 !== null) { x0 = null; move(0, 200); setTimeout(dropPeek, 220); } }, { passive: true });
   })();
+
   (function () {
     var y0 = null, x0 = 0, pull = 0, mode = null, ptr = document.getElementById('ptr'), label = ptr.querySelector('span');
     var LIMIT = 70;
