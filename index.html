@@ -1077,6 +1077,32 @@ a { color: var(--blue); text-decoration: none; }
     document.getElementById('day').textContent = '일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.';
   });
 
+  // 홈 화면 앱은 다시 열어도 새로 불러오지 않고 멈춰 있던 화면을 그대로 이어서 보여주므로,
+  // 다시 보일 때 화면 파일이 바뀌었으면 새로 불러오고, 아니면 일정과 날씨만 다시 받아 조용히 반영
+  function pageTag() {
+    return fetch(location.pathname, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      return r.headers.get('etag') || r.headers.get('last-modified') || '';
+    });
+  }
+  var tag = null;
+  pageTag().then(function (t) { tag = t; }).catch(function () {});
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || !plan) return;
+    pageTag().then(function (t) {
+      if (tag && t && t !== tag) { location.replace(location.pathname + '?v=' + encodeURIComponent(t)); return; }
+      return Promise.all([
+        fetch('data/plan.json', { cache: 'no-store' }).then(function (r) { return r.json(); }),
+        loadWeather()
+      ]).then(function (res) {
+        plan = res[0];
+        var stay = Math.abs(window.scrollY - lastAutoY) < 2;
+        renderDay(current, 0, true, true);
+        markNow(stay);
+        rainModal();
+      });
+    }).catch(function () {});
+  });
+
   // 예전에 설치된 오프라인 캐시가 남아 있으면 이전 데이터가 보이므로 등록 해제와 캐시 삭제만 함 (새로고침은 하지 않음)
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function () {});
