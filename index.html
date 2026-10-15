@@ -171,6 +171,11 @@ a { color: var(--blue); text-decoration: none; }
 .sk-wx { height: 210px; margin-top: 12px; border-radius: 18px; }
 .sk-sec { width: 22%; height: 22px; margin: 26px 0 12px; border-radius: 8px; }
 .sk-card { height: 120px; margin: 0 0 12px 22px; border-radius: 16px; }
+.sk-k { width: 56px; height: 34px; border-radius: 8px; }
+.sk-leg { width: 75%; height: 16px; margin: 4px 0; border-radius: 6px; }
+.sk-tab { flex: 1; height: 30px; margin: 0 2px; border-radius: 8px; }
+.sk-exh { width: 40%; height: 22px; margin: 26px 4px 12px; border-radius: 8px; }
+.sk-ex { height: 52px; margin: 0 0 10px; border-radius: 14px; }
 .sk-line { width: 60%; height: 44px; margin: 0 0 12px 22px; border-radius: 10px; }
 @keyframes pulse { 0% { transform: scale(.6); opacity: .45; } 100% { transform: scale(1.8); opacity: 0; } }
 .it.past { opacity: .5; }
@@ -342,6 +347,8 @@ a { color: var(--blue); text-decoration: none; }
 .switch input:checked + span { background: var(--green); }
 .switch input:checked + span::after { transform: translateX(20px); }
 .err { color: var(--red); font-size: 13px; margin-top: 8px; }
+.upd-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 4px 16px 18px; }
+.upd-acts .btn { justify-content: center; text-align: center; padding: 12px 0; }
 .rain-desc { margin: 0 16px 10px; font-size: 14px; color: var(--ink2); }
 #rain-body { padding: 0 16px 28px; display: grid; gap: 8px; }
 .rain-day { all: unset; cursor: pointer; display: block; background: var(--card); border-radius: 12px; padding: 12px 14px; }
@@ -360,11 +367,11 @@ a { color: var(--blue); text-decoration: none; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
   </button>
 </header>
-<div class="offline" id="net" hidden>오프라인. 네트워크에 연결되면 최신 일정과 날씨를 불러옵니다</div>
-<section class="group" id="flights"></section>
+<div class="offline" id="net" hidden>오프라인. 마지막으로 받은 일정과 날씨를 표시 중</div>
+<section class="group" id="flights"><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div></section>
 <nav class="bar" id="bar">
   <div class="bar-title" id="bar-title"></div>
-  <div class="seg" id="tabs" role="tablist" aria-label="날짜"><div class="seg-pill" id="pill"></div></div>
+  <div class="seg" id="tabs" role="tablist" aria-label="날짜"><div class="seg-pill" id="pill"></div><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span></div>
 </nav>
 <main id="day">
   <div class="skel" aria-label="불러오는 중">
@@ -380,7 +387,7 @@ a { color: var(--blue); text-decoration: none; }
     <div class="sk sk-card"></div>
   </div>
 </main>
-<section id="extras"></section>
+<section id="extras"><div class="sk sk-exh"></div><div class="sk sk-ex"></div><div class="sk sk-ex"></div><div class="sk sk-ex"></div></section>
 <button id="nowcap" type="button" aria-label="현재 일정으로 이동"><span class="a"></span><span class="go">이동</span><span class="b"></span></button>
 
 <div class="sheet" id="map-sheet" aria-hidden="true">
@@ -412,6 +419,16 @@ a { color: var(--blue); text-decoration: none; }
         <span class="switch"><input type="checkbox" id="motion-toggle" aria-label="인터랙션 효과"><span></span></span>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="sheet" id="upd-sheet" aria-hidden="true">
+  <div class="scrim"></div>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="upd-title">
+    <div class="grab"></div>
+    <div class="panel-head"><b id="upd-title">새 일정이 있습니다</b></div>
+    <p class="rain-desc">일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.</p>
+    <div class="upd-acts"><button class="btn" type="button" id="upd-later">나중에</button><button class="btn fill" type="button" id="upd-now">새로고침</button></div>
   </div>
 </div>
 
@@ -1002,6 +1019,7 @@ a { color: var(--blue); text-decoration: none; }
 
   function renderExtras() {
     var box = document.getElementById('extras');
+    box.textContent = '';
     box.appendChild(el('div', { class: 'sec', text: '저장 장소 더보기' }));
     plan.extras.forEach(function (g) {
       var d = el('details', { class: 'ex rv' }, [el('summary', null, [g.title, el('span', { text: g.items.length + '곳' })])]);
@@ -1013,6 +1031,7 @@ a { color: var(--blue); text-decoration: none; }
 
   function renderFlights() {
     var box = document.getElementById('flights');
+    box.textContent = '';
     plan.flights.forEach(function (f) {
       box.appendChild(el('div', { class: 'row' }, [
         el('div', { class: 'k' }, [el('b', { text: f.label }), f.date]),
@@ -1033,6 +1052,7 @@ a { color: var(--blue); text-decoration: none; }
     plan = p;
     renderFlights();
     var tabs = document.getElementById('tabs');
+    Array.prototype.forEach.call(tabs.querySelectorAll('.sk'), function (n) { n.remove(); });
     plan.days.forEach(function (d, i) {
       var b = el('button', { type: 'button', role: 'tab', text: d.label });
       b.addEventListener('click', function () {
@@ -1123,37 +1143,39 @@ a { color: var(--blue); text-decoration: none; }
     document.getElementById('day').textContent = '일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.';
   });
 
-  // 홈 화면 앱은 다시 열어도 새로 불러오지 않고 멈춰 있던 화면을 그대로 이어서 보여주므로,
-  // 다시 보일 때 화면 파일이 바뀌었으면 새로 불러오고, 아니면 일정과 날씨만 다시 받아 조용히 반영
-  function pageTag() {
-    return fetch(location.pathname, { method: 'HEAD', cache: 'no-store' }).then(function (r) {
-      return r.headers.get('etag') || r.headers.get('last-modified') || '';
-    });
+  // 오프라인에서도 쓰도록 서비스 워커가 마지막으로 받은 화면과 데이터를 보관함.
+  // 온라인이면 새 버전이 있는지 확인해 미리 받아 두고, 일정이 바뀌는 변경이면 새로고침할지 물어봄.
+  // 나중에를 눌러도 앱을 완전히 종료했다가 다시 열면 받아 둔 새 버전이 자동으로 반영됨.
+  var dismissed = null, asking = false;
+  function checkUpdate() {
+    var sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+    if (!sw || !navigator.onLine || asking) return;
+    if (document.querySelector('.sheet.open')) { setTimeout(checkUpdate, 5000); return; }
+    var ch = new MessageChannel();
+    ch.port1.onmessage = function (e) {
+      var r = e.data || {};
+      if (!r.ask || r.sig === dismissed) return;
+      asking = true;
+      openSheet('upd-sheet');
+      document.getElementById('upd-later').onclick = function () {
+        dismissed = r.sig; asking = false; closeSheet(document.getElementById('upd-sheet'));
+      };
+    };
+    sw.postMessage('check', [ch.port2]);
   }
-  var tag = null;
-  pageTag().then(function (t) { tag = t; }).catch(function () {});
+  document.getElementById('upd-now').addEventListener('click', function () { location.reload(); });
+  window.addEventListener('online', checkUpdate);
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState !== 'visible' || !plan) return;
-    pageTag().then(function (t) {
-      if (tag && t && t !== tag) { location.replace(location.pathname + '?v=' + encodeURIComponent(t)); return; }
-      return Promise.all([
-        fetch('data/plan.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }),
-        loadWeather()
-      ]).then(function (res) {
-        plan = res[0];
-        var stay = Math.abs(window.scrollY - lastAutoY) < 2;
-        renderDay(current, 0, true, true);
-        markNow(stay);
-        rainModal();
-      });
-    }).catch(function () {});
+    markNow(false);
+    checkUpdate();
   });
+  setInterval(function () { if (document.visibilityState === 'visible') checkUpdate(); }, 15 * 60000);
 
-  // 예전에 설치된 오프라인 캐시가 남아 있으면 이전 데이터가 보이므로 등록 해제와 캐시 삭제만 함 (새로고침은 하지 않음)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function (rs) { rs.forEach(function (r) { r.unregister(); }); }).catch(function () {});
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+    navigator.serviceWorker.ready.then(function () { setTimeout(checkUpdate, 3000); });
   }
-  if (window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); }).catch(function () {});
 })();
 </script>
 </body>
