@@ -74,9 +74,9 @@
 html, body { overscroll-behavior: none; overflow-x: clip; }
 /* 맨 위에서 끌어내리면 화면이 따라 내려오며 새로고침 안내가 위에서 드러남 */
 body { position: relative; }
-body::before { content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 200px; background: var(--bg); }
 /* iOS 기본 새로고침처럼 당기는 만큼 살이 하나씩 나타나고, 불러오는 동안 12단계로 회전 */
-#ptr { position: absolute; z-index: 1; left: 0; right: 0; top: -58px; height: 52px; display: flex; align-items: center; justify-content: center; color: var(--ink2); }
+/* 화면을 transform 으로 내리면 iOS 에서 body 밖이 잘려 안내가 안 보여서, 위쪽 여백을 늘려 내리고 안내는 화면 상단에 고정 */
+#ptr { position: fixed; z-index: 9; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--ink2); }
 #ptr svg { width: 28px; height: 28px; }
 #ptr rect { opacity: 0; transition: opacity .12s; }
 #ptr.load svg { animation: spin .9s steps(12) infinite; }
@@ -1315,8 +1315,11 @@ a { color: var(--blue); text-decoration: none; }
     var y0 = null, x0 = 0, pull = 0, mode = null, ptr = document.getElementById('ptr'), ticks = ptr.querySelectorAll('rect');
     var LIMIT = 70;
     var move = function (y, ms) {
-      document.body.style.transition = ms ? 'transform ' + ms + 'ms cubic-bezier(.22,1,.36,1)' : 'none';
-      document.body.style.transform = y ? 'translateY(' + y + 'px)' : '';
+      var tr = ms ? ms + 'ms cubic-bezier(.22,1,.36,1)' : '0s';
+      document.body.style.transition = 'padding-top ' + tr;
+      ptr.style.transition = 'height ' + tr;
+      document.body.style.paddingTop = y ? y + 'px' : '';
+      ptr.style.height = y + 'px';
     };
     document.addEventListener('touchstart', function (e) {
       if (window.scrollY > 0 || e.touches.length !== 1 || document.querySelector('.sheet.open')) { y0 = null; return; }
