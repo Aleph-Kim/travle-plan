@@ -196,6 +196,16 @@ a { color: var(--blue); text-decoration: none; }
 .past-sum .time { color: var(--ink3); min-width: 38px; }
 .past-sum .t { font-size: 15px; font-weight: 500; color: var(--ink3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .past-sum .done { font-size: 11px; font-weight: 700; color: var(--green); white-space: nowrap; }
+.past-sum .chev, .fold .chev { display: inline-flex; color: var(--ink3); }
+.past-sum .chev { margin-left: auto; align-self: center; }
+.past-sum .chev svg, .fold .chev svg { width: 11px; height: 11px; }
+.past-sum .chev svg { transform: rotate(90deg); }
+.fold { display: none; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--ink3); white-space: nowrap; }
+.fold .chev svg { transform: rotate(-90deg); }
+.it.past.open .it-head { justify-content: flex-start; }
+.it.past.open .it-head .cost { margin-left: auto; }
+.it.past.open .fold { display: inline-flex; margin-left: auto; }
+.it.past.open .cost + .fold { margin-left: 0; }
 .it.past .dot { width: 16px; height: 16px; left: -23px; border: 0; background: var(--green); }
 .it.past:not(.open) .dot { top: 9px; }
 .it.past .dot::after { content: ''; position: absolute; left: 5.5px; top: 2.5px; width: 3.5px; height: 7px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
@@ -497,7 +507,7 @@ a { color: var(--blue); text-decoration: none; }
   // 언어는 기기별 설정. 화면 문구는 아래 UI 사전, 일정 내용은 data/i18n.json (한국어 원문이 키)
   var LANG_KEY = 'trip-lang';
   var LANG = (function () { var l = load(LANG_KEY); return l === 'en' || l === 'ja' ? l : 'ko'; })();
-  var UI = {"en": {"히로시마 동선": "Hiroshima Trip", "히로시마": "Hiroshima", "10월 15일 ~ 19일": "Oct 15 ~ 19", "설정": "Settings", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "Offline. Showing the last downloaded plan and weather", "날짜": "Dates", "불러오는 중": "Loading", "현재 일정으로 이동": "Go to the current item", "이동": "Go", "닫기": "Close", "완료": "Done", "언어": "Language", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "All screen text and plan content. Saved on this device only", "인터랙션 효과": "Motion effects", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "Screen transitions and reveal effects. Saved on this device only", "새로고침": "Refresh", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "For the home screen app. Also applies any downloaded update", "다시 불러오기": "Reload", "새 일정이 있습니다": "New plan available", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "The plan, or a weather-based change to it, has been updated. Refresh now? If you tap Later, it applies automatically the next time you open the app.", "나중에": "Later", "비 예보로 바뀐 일정": "Changed for rain", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "Today's plan stays as is. Only later days were changed. Tap a date to see the new plan.", "맑음": "Clear", "대체로 맑음": "Mostly clear", "구름 조금": "Partly cloudy", "흐림": "Cloudy", "안개": "Fog", "이슬비": "Drizzle", "비": "Rain", "눈": "Snow", "소나기": "Showers", "뇌우": "Thunderstorm", "{t} 지도": "{t} map", "구글 지도": "Google Maps", "미리보기": "Preview", "구글 {n}": "Google {n}", "타베로그 {n}": "Tabelog {n}", "후기 요약": "Review summary", "좋은 점": "Pros", "아쉬운 점": "Cons", "추천": "Pick", "{n}엔": "{n} yen", "엔": " yen", "여러 곳 체크 가능": "Pick any", "하나 고르기": "Pick one", "낮음": "Low", "보통": "Moderate", "높음": "High", "매우 높음": "Very high", "위험": "Extreme", "지금, 체감 {t}": "Now, feels like {t}", "낮 최고 기온": "Daytime high", "최대 풍속": "Max wind", "평균 습도": "Avg humidity", "강수 확률": "Rain chance", "자외선": "UV", "최고 {t}": "H {t}", "최저 {t}": "L {t}", "지금": "Now", "오전 {h}시": "{h} AM", "오후 {h}시": "{h} PM", "{d} {p} 날씨": "{p} weather, {d}", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}, rain {r}, sunrise {a}, sunset {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "Hourly forecast will be added at the next update", "날씨": "Weather", "바람": "Wind", "습도": "Humidity", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "Wind in m/s. Rain chance in blue is at or above the {n}% rain threshold", "{t} 갱신, Open-Meteo 예보": "Updated {t}, Open-Meteo forecast", "{p} 날씨": "{p} weather", "이 날짜 예보가 아직 없음": "No forecast for this date yet", "날씨 데이터를 아직 불러오지 못함": "Weather data not loaded yet", "{t} 갱신": "Updated {t}", "시간별 보기": "Hourly", "없음": "None", "교통과 입장료": "Transport and admission", "식비 제외": "Excluding food", "노천탕": "Open-air bath", "하루 한 번": "Once a day", "날씨에 맞춰 날짜를 바꿨습니다": "Days swapped for the weather", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan from {o} because of rain", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan because of rain", "빠진 일정: {n}": "Dropped: {n}", "비 예보로 일정이 바뀌었습니다": "Plan changed for rain", "수건 챙기기": "Bring a towel", "일정": "Schedule", "지금  {t}": "Now  {t}", "다음  {a}  {t}": "Next  {a}  {t}", "오늘 마지막 일정": "Last item today", "지난 일정 펼치기": "Expand past item", "저장 장소 더보기": "More saved places", "{n}곳": "{n} places", "출발": "Dep", "도착": "Arr", "원래 {a} 일정에서 {b} 일정으로 바뀜": "Changed from {a} to {b}", "비 예보로 빠지는 일정: {n}": "Dropped for rain: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "Couldn't load the plan. Please check your network connection."}, "ja": {"히로시마 동선": "広島旅程", "히로시마": "広島", "10월 15일 ~ 19일": "10月15日〜19日", "설정": "設定", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "オフライン。最後に受け取った予定と天気を表示中", "날짜": "日付", "불러오는 중": "読み込み中", "현재 일정으로 이동": "現在の予定へ移動", "이동": "移動", "닫기": "閉じる", "완료": "完了", "언어": "言語", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "画面の文言と予定の内容すべて。この設定はこの端末にのみ保存", "인터랙션 효과": "アニメーション効果", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "画面切り替えと表示効果。この設定はこの端末にのみ保存", "새로고침": "更新", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "ホーム画面アプリ用。受け取った新しいバージョンもこのとき反映", "다시 불러오기": "再読み込み", "새 일정이 있습니다": "新しい予定があります", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "予定、または天気による予定変更が更新されました。今すぐ更新しますか？「あとで」を押すと、次にアプリを開いたときに自動で反映されます。", "나중에": "あとで", "비 예보로 바뀐 일정": "雨予報で変わった予定", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "今日の予定はそのままで、明日以降の予定だけ変更しました。日付を押すと変更後の予定へ移動します。", "맑음": "晴れ", "대체로 맑음": "おおむね晴れ", "구름 조금": "晴れ時々曇り", "흐림": "曇り", "안개": "霧", "이슬비": "霧雨", "비": "雨", "눈": "雪", "소나기": "にわか雨", "뇌우": "雷雨", "{t} 지도": "{t} 地図", "구글 지도": "Google マップ", "미리보기": "プレビュー", "구글 {n}": "Google {n}", "타베로그 {n}": "食べログ {n}", "후기 요약": "口コミ要約", "좋은 점": "良い点", "아쉬운 점": "気になる点", "추천": "おすすめ", "{n}엔": "{n}円", "엔": "円", "여러 곳 체크 가능": "複数選択可", "하나 고르기": "1つ選ぶ", "낮음": "弱い", "보통": "中程度", "높음": "強い", "매우 높음": "非常に強い", "위험": "極端に強い", "지금, 체감 {t}": "現在、体感 {t}", "낮 최고 기온": "日中の最高気温", "최대 풍속": "最大風速", "평균 습도": "平均湿度", "강수 확률": "降水確率", "자외선": "紫外線", "최고 {t}": "最高 {t}", "최저 {t}": "最低 {t}", "지금": "今", "오전 {h}시": "午前{h}時", "오후 {h}시": "午後{h}時", "{d} {p} 날씨": "{d} {p}の天気", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}、降水量 {r}、日の出 {a}、日の入り {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "時間別予報は次回の更新で追加されます", "날씨": "天気", "바람": "風", "습도": "湿度", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "風速は m/s、青い降水確率は雨判定基準の{n}%以上", "{t} 갱신, Open-Meteo 예보": "{t} 更新、Open-Meteo 予報", "{p} 날씨": "{p}の天気", "이 날짜 예보가 아직 없음": "この日の予報はまだありません", "날씨 데이터를 아직 불러오지 못함": "天気データをまだ読み込めていません", "{t} 갱신": "{t} 更新", "시간별 보기": "時間別", "없음": "なし", "교통과 입장료": "交通費と入場料", "식비 제외": "食費別", "노천탕": "露天風呂", "하루 한 번": "1日1回", "날씨에 맞춰 날짜를 바꿨습니다": "天気に合わせて日程を入れ替えました", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{o}の{b}の日程と入れ替え", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{b}の日程と入れ替え", "빠진 일정: {n}": "外した予定: {n}", "비 예보로 일정이 바뀌었습니다": "雨予報で予定を変更しました", "수건 챙기기": "タオルを持参", "일정": "予定", "지금  {t}": "今  {t}", "다음  {a}  {t}": "次  {a}  {t}", "오늘 마지막 일정": "今日最後の予定", "지난 일정 펼치기": "過ぎた予定を開く", "저장 장소 더보기": "保存した場所をもっと見る", "{n}곳": "{n}件", "출발": "出発", "도착": "到着", "원래 {a} 일정에서 {b} 일정으로 바뀜": "{a}から{b}に変更", "비 예보로 빠지는 일정: {n}": "雨予報で外す予定: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "予定を読み込めませんでした。ネットワーク接続を確認してください。"}};
+  var UI = {"en": {"히로시마 동선": "Hiroshima Trip", "히로시마": "Hiroshima", "10월 15일 ~ 19일": "Oct 15 ~ 19", "설정": "Settings", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "Offline. Showing the last downloaded plan and weather", "날짜": "Dates", "불러오는 중": "Loading", "현재 일정으로 이동": "Go to the current item", "이동": "Go", "닫기": "Close", "완료": "Done", "언어": "Language", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "All screen text and plan content. Saved on this device only", "인터랙션 효과": "Motion effects", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "Screen transitions and reveal effects. Saved on this device only", "새로고침": "Refresh", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "For the home screen app. Also applies any downloaded update", "다시 불러오기": "Reload", "새 일정이 있습니다": "New plan available", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "The plan, or a weather-based change to it, has been updated. Refresh now? If you tap Later, it applies automatically the next time you open the app.", "나중에": "Later", "비 예보로 바뀐 일정": "Changed for rain", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "Today's plan stays as is. Only later days were changed. Tap a date to see the new plan.", "맑음": "Clear", "대체로 맑음": "Mostly clear", "구름 조금": "Partly cloudy", "흐림": "Cloudy", "안개": "Fog", "이슬비": "Drizzle", "비": "Rain", "눈": "Snow", "소나기": "Showers", "뇌우": "Thunderstorm", "{t} 지도": "{t} map", "구글 지도": "Google Maps", "미리보기": "Preview", "구글 {n}": "Google {n}", "타베로그 {n}": "Tabelog {n}", "후기 요약": "Review summary", "좋은 점": "Pros", "아쉬운 점": "Cons", "추천": "Pick", "{n}엔": "{n} yen", "엔": " yen", "여러 곳 체크 가능": "Pick any", "하나 고르기": "Pick one", "낮음": "Low", "보통": "Moderate", "높음": "High", "매우 높음": "Very high", "위험": "Extreme", "지금, 체감 {t}": "Now, feels like {t}", "낮 최고 기온": "Daytime high", "최대 풍속": "Max wind", "평균 습도": "Avg humidity", "강수 확률": "Rain chance", "자외선": "UV", "최고 {t}": "H {t}", "최저 {t}": "L {t}", "지금": "Now", "오전 {h}시": "{h} AM", "오후 {h}시": "{h} PM", "{d} {p} 날씨": "{p} weather, {d}", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}, rain {r}, sunrise {a}, sunset {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "Hourly forecast will be added at the next update", "날씨": "Weather", "바람": "Wind", "습도": "Humidity", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "Wind in m/s. Rain chance in blue is at or above the {n}% rain threshold", "{t} 갱신, Open-Meteo 예보": "Updated {t}, Open-Meteo forecast", "{p} 날씨": "{p} weather", "이 날짜 예보가 아직 없음": "No forecast for this date yet", "날씨 데이터를 아직 불러오지 못함": "Weather data not loaded yet", "{t} 갱신": "Updated {t}", "시간별 보기": "Hourly", "없음": "None", "교통과 입장료": "Transport and admission", "식비 제외": "Excluding food", "노천탕": "Open-air bath", "하루 한 번": "Once a day", "날씨에 맞춰 날짜를 바꿨습니다": "Days swapped for the weather", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan from {o} because of rain", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan because of rain", "빠진 일정: {n}": "Dropped: {n}", "비 예보로 일정이 바뀌었습니다": "Plan changed for rain", "수건 챙기기": "Bring a towel", "일정": "Schedule", "지금  {t}": "Now  {t}", "다음  {a}  {t}": "Next  {a}  {t}", "오늘 마지막 일정": "Last item today", "지난 일정 펼치기": "Expand past item", "접기": "Collapse", "저장 장소 더보기": "More saved places", "{n}곳": "{n} places", "출발": "Dep", "도착": "Arr", "원래 {a} 일정에서 {b} 일정으로 바뀜": "Changed from {a} to {b}", "비 예보로 빠지는 일정: {n}": "Dropped for rain: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "Couldn't load the plan. Please check your network connection."}, "ja": {"히로시마 동선": "広島旅程", "히로시마": "広島", "10월 15일 ~ 19일": "10月15日〜19日", "설정": "設定", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "オフライン。最後に受け取った予定と天気を表示中", "날짜": "日付", "불러오는 중": "読み込み中", "현재 일정으로 이동": "現在の予定へ移動", "이동": "移動", "닫기": "閉じる", "완료": "完了", "언어": "言語", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "画面の文言と予定の内容すべて。この設定はこの端末にのみ保存", "인터랙션 효과": "アニメーション効果", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "画面切り替えと表示効果。この設定はこの端末にのみ保存", "새로고침": "更新", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "ホーム画面アプリ用。受け取った新しいバージョンもこのとき反映", "다시 불러오기": "再読み込み", "새 일정이 있습니다": "新しい予定があります", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "予定、または天気による予定変更が更新されました。今すぐ更新しますか？「あとで」を押すと、次にアプリを開いたときに自動で反映されます。", "나중에": "あとで", "비 예보로 바뀐 일정": "雨予報で変わった予定", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "今日の予定はそのままで、明日以降の予定だけ変更しました。日付を押すと変更後の予定へ移動します。", "맑음": "晴れ", "대체로 맑음": "おおむね晴れ", "구름 조금": "晴れ時々曇り", "흐림": "曇り", "안개": "霧", "이슬비": "霧雨", "비": "雨", "눈": "雪", "소나기": "にわか雨", "뇌우": "雷雨", "{t} 지도": "{t} 地図", "구글 지도": "Google マップ", "미리보기": "プレビュー", "구글 {n}": "Google {n}", "타베로그 {n}": "食べログ {n}", "후기 요약": "口コミ要約", "좋은 점": "良い点", "아쉬운 점": "気になる点", "추천": "おすすめ", "{n}엔": "{n}円", "엔": "円", "여러 곳 체크 가능": "複数選択可", "하나 고르기": "1つ選ぶ", "낮음": "弱い", "보통": "中程度", "높음": "強い", "매우 높음": "非常に強い", "위험": "極端に強い", "지금, 체감 {t}": "現在、体感 {t}", "낮 최고 기온": "日中の最高気温", "최대 풍속": "最大風速", "평균 습도": "平均湿度", "강수 확률": "降水確率", "자외선": "紫外線", "최고 {t}": "最高 {t}", "최저 {t}": "最低 {t}", "지금": "今", "오전 {h}시": "午前{h}時", "오후 {h}시": "午後{h}時", "{d} {p} 날씨": "{d} {p}の天気", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}、降水量 {r}、日の出 {a}、日の入り {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "時間別予報は次回の更新で追加されます", "날씨": "天気", "바람": "風", "습도": "湿度", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "風速は m/s、青い降水確率は雨判定基準の{n}%以上", "{t} 갱신, Open-Meteo 예보": "{t} 更新、Open-Meteo 予報", "{p} 날씨": "{p}の天気", "이 날짜 예보가 아직 없음": "この日の予報はまだありません", "날씨 데이터를 아직 불러오지 못함": "天気データをまだ読み込めていません", "{t} 갱신": "{t} 更新", "시간별 보기": "時間別", "없음": "なし", "교통과 입장료": "交通費と入場料", "식비 제외": "食費別", "노천탕": "露天風呂", "하루 한 번": "1日1回", "날씨에 맞춰 날짜를 바꿨습니다": "天気に合わせて日程を入れ替えました", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{o}の{b}の日程と入れ替え", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{b}の日程と入れ替え", "빠진 일정: {n}": "外した予定: {n}", "비 예보로 일정이 바뀌었습니다": "雨予報で予定を変更しました", "수건 챙기기": "タオルを持参", "일정": "予定", "지금  {t}": "今  {t}", "다음  {a}  {t}": "次  {a}  {t}", "오늘 마지막 일정": "今日最後の予定", "지난 일정 펼치기": "過ぎた予定を開く", "접기": "閉じる", "저장 장소 더보기": "保存した場所をもっと見る", "{n}곳": "{n}件", "출발": "出発", "도착": "到着", "원래 {a} 일정에서 {b} 일정으로 바뀜": "{a}から{b}に変更", "비 예보로 빠지는 일정: {n}": "雨予報で外す予定: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "予定を読み込めませんでした。ネットワーク接続を確認してください。"}};
   function T(k, v) {
     var s = (UI[LANG] && UI[LANG][k]) || k;
     return v ? s.replace(/\{(\w)\}/g, function (m, n) { return v[n] == null ? m : v[n]; }) : s;
@@ -1058,9 +1068,11 @@ a { color: var(--blue); text-decoration: none; }
     });
     var cap = document.getElementById('nowcap');
     if (capIo) capIo.disconnect();
-    Array.prototype.forEach.call(rows, function (r, j) { setPast(r, j < hit); });
+    // 지난 날짜는 일정 전체를 완료로 접고, 진행 선도 끝까지 채움
+    var over = day.date < now.date;
+    Array.prototype.forEach.call(rows, function (r, j) { setPast(r, over || j < hit); });
     if (hit === -1) {
-      progress(null);
+      progress(over && rows.length ? rows[rows.length - 1] : null);
       if (scroll) window.scrollTo(0, 0);
       // 다른 날짜를 보고 있으면 오늘 지금 일정으로 돌아가는 캡슐을 보여줌
       var ti = plan.days.findIndex(function (d) { return d.date === now.date; });
@@ -1102,14 +1114,17 @@ a { color: var(--blue); text-decoration: none; }
   // 지난 일정은 시각과 제목 한 줄로 접고, 누르면 펼쳐서 원래 카드를 보여줌
   function setPast(r, past) {
     var sum = r.querySelector('.past-sum');
-    if (!past) { r.classList.remove('past', 'open'); if (sum) sum.remove(); return; }
+    if (!past) { r.classList.remove('past', 'open'); if (sum) sum.remove(); var f = r.querySelector('.fold'); if (f) f.remove(); return; }
     r.classList.add('past');
     if (sum) return;
     sum = el('button', { class: 'past-sum', type: 'button', 'aria-label': T('지난 일정 펼치기') }, [
       el('span', { class: 'time', text: r.querySelector('.time').firstChild.textContent }),
       el('span', { class: 't', text: labelOf(r) }),
-      el('span', { class: 'done', text: T('완료') })
+      el('span', { class: 'done', text: T('완료') }),
+      el('span', { class: 'chev', html: ICON.chev })
     ]);
+    // 펼친 카드에서도 다시 접을 수 있다는 것을 보여줌
+    r.querySelector('.it-head').appendChild(el('span', { class: 'fold' }, [T('접기'), el('span', { class: 'chev', html: ICON.chev })]));
     sum.addEventListener('click', function () { togglePast(r, true); });
     r.querySelector('.it-head').addEventListener('click', function () { if (r.classList.contains('open')) togglePast(r, false); });
     r.insertBefore(sum, r.querySelector('.card'));
@@ -1118,7 +1133,7 @@ a { color: var(--blue); text-decoration: none; }
   // 지난 일정 펼치기: 카드가 한 줄 높이에서 늘어나며 나타나고, 접기: 줄어들며 한 줄 요약으로 돌아감
   function togglePast(r, open) {
     var card = r.querySelector('.card'), sum = r.querySelector('.past-sum');
-    var now = function () { progress(document.querySelector('#day .it.now')); };
+    var now = function () { progress(progressTarget()); };
     var anim = motionOn() && card.animate;
     if (open) {
       var h0 = sum.offsetHeight;
@@ -1139,6 +1154,13 @@ a { color: var(--blue); text-decoration: none; }
   }
 
   // 타임라인 선을 처음부터 지금 일정의 점까지 초록으로 채워 진행 정도를 보여줌
+  // 진행 선의 끝: 오늘은 지금 일정, 지난 날짜는 마지막 일정
+  function progressTarget() {
+    var n = document.querySelector('#day .it.now');
+    if (n || !plan || plan.days[current].date >= jstNow().date) return n;
+    var rows = document.querySelectorAll('#day .it');
+    return rows[rows.length - 1] || null;
+  }
   function progress(cur) {
     var tl = document.querySelector('#day .tl');
     if (!tl) return;
@@ -1345,7 +1367,8 @@ a { color: var(--blue); text-decoration: none; }
       peek.style.width = W() + 'px';
       fillDay(peek, i);
       settle(peek);
-      if (plan.days[i].date === jstNow().date) {
+      if (plan.days[i].date < jstNow().date) Array.prototype.forEach.call(peek.querySelectorAll('.it'), function (r) { setPast(r, true); });
+      else if (plan.days[i].date === jstNow().date) {
         var now = jstNow().min, rows = peek.querySelectorAll('.it'), hit = -1;
         Array.prototype.forEach.call(rows, function (r, j) { var m = r.getAttribute('data-min'); if (m !== '' && +m <= now) hit = j; });
         Array.prototype.forEach.call(rows, function (r, j) { setPast(r, j < hit); });
@@ -1436,7 +1459,7 @@ a { color: var(--blue); text-decoration: none; }
     }, { passive: true });
   })();
 
-  window.addEventListener('resize', function () { if (plan) { moveTabs(current); progress(document.querySelector('#day .it.now')); } });
+  window.addEventListener('resize', function () { if (plan) { moveTabs(current); progress(progressTarget()); } });
 
   function net() { document.getElementById('net').hidden = navigator.onLine; }
   window.addEventListener('online', net); window.addEventListener('offline', net); net();
