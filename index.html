@@ -70,6 +70,10 @@
   }
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* 홈 화면 앱에서 화면 끝 튕김, 두 번 탭 확대, 버튼 길게 누르기 메뉴를 막아 앱처럼 동작하게 함 */
+html, body { overscroll-behavior: none; }
+html { touch-action: manipulation; }
+button, .btn, .seg, #nowcap, .past-sum, .wx.tap, summary { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 html { background: var(--outer); }
 body {
   margin: 0 auto; max-width: 430px; min-height: 100vh; background: var(--bg); color: var(--ink);
@@ -426,6 +430,10 @@ a { color: var(--blue); text-decoration: none; }
       <div class="set-row">
         <span>인터랙션 효과<small>화면 전환, 등장 효과. 이 설정만 이 기기에 저장</small></span>
         <span class="switch"><input type="checkbox" id="motion-toggle" aria-label="인터랙션 효과"><span></span></span>
+      </div>
+      <div class="set-row">
+        <span>새로고침<small>홈 화면 앱용. 받아 둔 새 버전도 이때 반영</small></span>
+        <button class="btn" type="button" id="reload-btn" style="white-space: nowrap">다시 불러오기</button>
       </div>
     </div>
   </div>
@@ -1248,6 +1256,7 @@ a { color: var(--blue); text-decoration: none; }
     sw.postMessage('check', [ch.port2]);
   }
   document.getElementById('upd-now').addEventListener('click', function () { location.reload(); });
+  document.getElementById('reload-btn').addEventListener('click', function () { location.reload(); });
   window.addEventListener('online', checkUpdate);
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState !== 'visible' || !plan) return;
