@@ -188,7 +188,9 @@ a { color: var(--blue); text-decoration: none; }
 .sk-ex { height: 52px; margin: 0 0 10px; border-radius: 14px; }
 .sk-line { width: 60%; height: 44px; margin: 0 0 12px 22px; border-radius: 10px; }
 @keyframes pulse { 0% { transform: scale(.6); opacity: .45; } 100% { transform: scale(1.8); opacity: 0; } }
-.it.past.open { opacity: .6; }
+.it.past.open, .motion .it.past.open.rv.in { opacity: .6; }
+/* 펼치고 접는 동안에는 한 줄 요약을 카드 위에 겹쳐 두고 서로 교차해서 나타나고 사라지게 함 */
+.it.past.swap .past-sum { display: flex; position: absolute; top: 0; left: 0; pointer-events: none; }
 .it.past:not(.open) .card { display: none; }
 .past-sum { all: unset; display: none; align-items: baseline; gap: 10px; padding: 6px 4px; cursor: pointer; width: calc(100% - 8px); }
 .it.past:not(.open) .past-sum { display: flex; }
@@ -1147,26 +1149,36 @@ a { color: var(--blue); text-decoration: none; }
 
   // 지난 일정 펼치기: 카드가 한 줄 높이에서 늘어나며 나타나고, 접기: 줄어들며 한 줄 요약으로 돌아감
   function togglePast(r, open) {
-    var card = r.querySelector('.card'), sum = r.querySelector('.past-sum');
+    var card = r.querySelector('.card'), sum = r.querySelector('.past-sum'), dot = r.querySelector('.dot');
     var now = function () { progress(progressTarget()); };
-    var anim = motionOn() && card.animate;
-    if (open) {
-      var h0 = sum.offsetHeight;
-      r.classList.add('open'); now();
-      if (!anim) return;
-      var h1 = card.offsetHeight;
-      card.style.overflow = 'hidden';
-      card.animate([{ height: h0 + 'px', opacity: 0 }, { opacity: 0, offset: 0.3 }, { height: h1 + 'px', opacity: 1 }],
-        { duration: 300, easing: 'cubic-bezier(.22,1,.36,1)' }).onfinish = function () { card.style.overflow = ''; };
-      return;
-    }
-    if (!anim) { r.classList.remove('open'); now(); return; }
-    var full = card.offsetHeight;
-    r.classList.remove('open'); var h = sum.offsetHeight; r.classList.add('open');
+    if (!(motionOn() && card.animate)) { r.classList.toggle('open', open); now(); return; }
+    // 접힌 모습과 펼친 모습의 높이, 줄 간격, 점 위치를 먼저 재고, 그 사이를 한 번에 이어서 움직임
+    // (끝난 뒤 한꺼번에 바뀌면 빈 줄이 남았다가 아래 일정이 튀어 오름)
+    var measure = function () { var cs = getComputedStyle(r); return { mb: cs.marginBottom, top: getComputedStyle(dot).top }; };
+    r.classList.remove('open'); var sumH = sum.offsetHeight, shut = measure();
+    r.classList.add('open'); var cardH = card.offsetHeight, wide = measure();
+    var a = open ? wide : shut, b = open ? shut : wide;
+    var from = open ? sumH : cardH, to = open ? cardH : sumH;
+    var o = { duration: open ? 300 : 250, easing: 'cubic-bezier(.22,1,.36,1)' };
+    r.classList.add('swap');
     card.style.overflow = 'hidden';
-    card.animate([{ height: full + 'px', opacity: 1 }, { height: h + 'px', opacity: 0 }],
-      { duration: 250, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = function () { card.style.overflow = ''; r.classList.remove('open'); now(); };
+    card.animate([{ height: from + 'px', opacity: open ? 0 : 1 }, { height: to + 'px', opacity: open ? 1 : 0 }], o);
+    sum.animate([{ opacity: open ? 1 : 0 }, { opacity: open ? 0 : 1 }], o);
+    dot.animate([{ top: b.top }, { top: a.top }], o);
+    // 진행 선도 높이가 바뀌는 동안 매 프레임 따라가게 함
+    var done = false, line = document.querySelector('#day .tl-done');
+    if (line) line.style.transition = 'none';
+    (function follow() { now(); if (!done) requestAnimationFrame(follow); })();
+    r.animate([{ marginBottom: b.mb }, { marginBottom: a.mb }], o).onfinish = function () {
+      done = true;
+      if (line) line.style.transition = '';
+      card.style.overflow = '';
+      r.classList.remove('swap');
+      r.classList.toggle('open', open);
+      now();
+    };
   }
+
 
   // 타임라인 선을 처음부터 지금 일정의 점까지 초록으로 채워 진행 정도를 보여줌
   // 진행 선의 끝: 오늘은 지금 일정, 지난 날짜는 마지막 일정
