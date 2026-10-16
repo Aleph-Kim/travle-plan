@@ -279,7 +279,7 @@ a { color: var(--blue); text-decoration: none; }
 .opt-body { display: grid; grid-template-rows: 1fr; }
 .opt-body > div { overflow: hidden; min-height: 0; }
 .motion .opt-body { transition: grid-template-rows .3s var(--ease); }
-.opt:not(.on) .opt-more { display: block; }
+.opt:not(.on):not(.bare) .opt-more { display: block; }
 .opt:not(.on):not(.peek) .opt-body { grid-template-rows: 0fr; }
 .chk { flex: 0 0 22px; height: 22px; }
 .chk circle { fill: none; stroke: var(--ink3); stroke-width: 1.5; }
@@ -748,7 +748,8 @@ a { color: var(--blue); text-decoration: none; }
       if (o.tip) inner.appendChild(lines('tip', o.tip));
       var r = reviews(o); if (r) inner.appendChild(r);
       var a = o.pid ? acts(o.name, placeLink(o), placeEmbed(o.pid)) : null; if (a) inner.appendChild(a);
-      var opt = el('div', { class: 'opt' + (on ? ' on' : '') }, [el('div', { class: 'opt-row' }, [pick, more]), el('div', { class: 'opt-body' }, [inner])]);
+      // 펼쳐 볼 내용이 없는 선택지(생략 등)는 꺾쇠를 달지 않음
+      var opt = el('div', { class: 'opt' + (on ? ' on' : '') + (inner.childNodes.length ? '' : ' bare') }, [el('div', { class: 'opt-row' }, [pick, more]), el('div', { class: 'opt-body' }, [inner])]);
       more.addEventListener('click', function () { opt.classList.toggle('peek'); });
       pick.addEventListener('click', function () {
         var st = load(PICK_KEY) || {};
