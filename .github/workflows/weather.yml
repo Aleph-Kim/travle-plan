@@ -12,14 +12,14 @@ on:
 
 permissions:
   contents: write
-
-concurrency:
-  group: weather
-  cancel-in-progress: false
+  actions: write
 
 jobs:
   update:
     runs-on: ubuntu-latest
+    concurrency:
+      group: weather-update
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -32,3 +32,23 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/weather.json
           git diff --cached --quiet || (git commit -m "날씨 갱신" && git pull --rebase && git push)
+
+  # GitHub 예약 실행은 몇 시간씩 건너뛰는 일이 잦아서, 실행이 끝나면 1시간 뒤 다음 실행을 직접 요청함
+  # 새 실행이 시작되면 이전 대기 작업은 취소되어 대기는 항상 하나만 남음. 여행이 끝나면(10/19 이후) 멈춤
+  next:
+    needs: update
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    concurrency:
+      group: weather-next
+      cancel-in-progress: true
+    steps:
+      - run: sleep 3540
+      - name: dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "$(TZ=Asia/Tokyo date +%Y%m%d)" -le 20261019 ]; then
+            gh workflow run weather.yml --repo "$GITHUB_REPOSITORY" --ref main
+          fi
