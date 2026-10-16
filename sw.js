@@ -3,6 +3,8 @@
 const ACTIVE = 'trip-active';
 const STAGED = 'trip-staged';
 const WEATHER = 'https://raw.githubusercontent.com/Aleph-Kim/travle-plan/main/data/weather.json';
+// 저장소 원본 주소(raw)는 CDN 이 최대 5분 묵은 내용을 줄 수 있어, 바로 반영되는 GitHub API 로 먼저 받고 실패하면(횟수 제한 등) raw 로 받음
+const WEATHER_API = 'https://api.github.com/repos/Aleph-Kim/travle-plan/contents/data/weather.json';
 const BASE = new URL('./', self.location).href;
 const FILES = ['index.html', 'config.js', 'data/plan.json', 'data/i18n.json', 'manifest.webmanifest',
   'icon.svg', 'icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'].map((f) => BASE + f);
@@ -17,6 +19,14 @@ const keyOf = (url) => {
   return u.href;
 };
 
+async function netWeather() {
+  try {
+    const r = await fetch(WEATHER_API, { headers: { Accept: 'application/vnd.github.raw+json' }, cache: 'no-cache' });
+    if (r.ok) return new Response(await r.text(), { headers: { 'content-type': 'application/json' } });
+  } catch (e) {}
+  return fetch(WEATHER, { cache: 'no-cache' });
+}
+
 const text = (res) => (res ? res.clone().text() : Promise.resolve(null));
 
 // 네트워크에서 받은 파일이 보관본과 다르면 STAGED 에 넣음
@@ -27,7 +37,7 @@ async function stage() {
   for (const url of TRACKED) {
     let res;
     try {
-      res = await fetch(url, { cache: 'no-cache' });
+      res = url === WEATHER ? await netWeather() : await fetch(url, { cache: 'no-cache' });
     } catch (e) {
       return { offline: true };
     }
@@ -94,6 +104,24 @@ async function fromActive(request, key) {
   return res;
 }
 
+// 날씨는 화면을 열 때(새로고침 포함)만 요청하므로, 온라인이면 새로 받아 바로 쓰고 보관본도 갱신함.
+// 2초 안에 못 받으면(오프라인, 느린 망) 보관본으로 응답
+async function freshWeather(request) {
+  const active = await caches.open(ACTIVE);
+  try {
+    const res = await Promise.race([
+      netWeather(),
+      new Promise((_, no) => setTimeout(() => no(new Error('timeout')), 2000)),
+    ]);
+    if (res.ok) {
+      await active.put(WEATHER, res.clone());
+      await (await caches.open(STAGED)).delete(WEATHER);
+      return res;
+    }
+  } catch (e) {}
+  return (await active.match(WEATHER)) || fetch(request);
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
@@ -102,6 +130,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   const key = keyOf(req.url);
+  if (key === WEATHER) { event.respondWith(freshWeather(req)); return; }
   if (TRACKED.indexOf(key) === -1) return;
   event.respondWith(fromActive(req, key));
 });
