@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "17 * * * *"
   workflow_dispatch:
+  # 배포(main 푸시) 때마다 날씨도 갱신. 이 작업이 GITHUB_TOKEN 으로 올린 커밋은 푸시 이벤트를 다시 만들지 않아 반복되지 않음
+  push:
+    branches: [main]
+    paths-ignore:
+      - data/weather.json
 
 permissions:
   contents: write
@@ -26,4 +31,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/weather.json
-          git diff --cached --quiet || (git commit -m "날씨 갱신" && git push)
+          git diff --cached --quiet || (git commit -m "날씨 갱신" && git pull --rebase && git push)
