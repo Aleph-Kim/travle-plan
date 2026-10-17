@@ -360,7 +360,7 @@ a { color: var(--blue); text-decoration: none; }
 .wx-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; font-size: 12px; opacity: .85; }
 .wx-more { font-weight: 700; opacity: 1; }
 .wx-more::after { content: ' ›'; }
-#wx-body { overflow-y: auto; min-height: 0; flex: 1; padding: 0 16px 16px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+#wx-body { overflow-y: auto; min-height: 0; flex: 1; padding: 0 16px 16px; overscroll-behavior: contain; }
 #wx-body .wx-sky { border-radius: 18px; padding: 18px 16px; }
 .wx-panel { margin-top: 10px; border-radius: 18px; padding: 12px 0 10px; background: #141b38; color: #fff; }
 .wx-seg { display: flex; margin: 0 12px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .08); }
@@ -417,6 +417,9 @@ a { color: var(--blue); text-decoration: none; }
 .sleep-card .s { font-size: 13px; opacity: .8; margin-top: 3px; }
 .sleep-card .zzz { position: absolute; right: 16px; top: 10px; font-weight: 800; color: #c9d2ff; letter-spacing: 1px; }
 .sleep-card .zzz i { font-style: normal; display: inline-block; }
+/* 지난 취침 카드를 펼치면 오른쪽 위에 접기 버튼이 나오므로 z z Z 는 숨김 */
+.it.past.open .sleep-card .zzz { display: none; }
+.sleep-card .fold { color: rgba(255, 255, 255, .7); }
 .sleep-card .zzz i:nth-child(1) { font-size: 12px; }
 .sleep-card .zzz i:nth-child(2) { font-size: 15px; }
 .sleep-card .zzz i:nth-child(3) { font-size: 19px; }
@@ -1069,6 +1072,10 @@ html:not(.motion) .wx-m .a-gust { opacity: 1; stroke-dasharray: none; }
     box.appendChild(el('p', { class: 'wx-upd', text: T('{t} 갱신, Open-Meteo 예보', { t: fmt(weather.updatedAt) }) }));
     box.scrollTop = 0;
     openSheet('wx-sheet');
+    // 숨겨진 시트 안에서 그린 아이콘은 iOS Safari 에서 움직임이 시작되지 않을 수 있어, 시트가 보인 뒤 아이콘을 다시 그려 움직임을 시작시킴
+    requestAnimationFrame(function () {
+      Array.prototype.forEach.call(box.querySelectorAll('.wx-hero .wx-ic, .wx-m i'), function (n) { n.innerHTML = n.innerHTML; });
+    });
   }
 
   function weatherCard(day) {
