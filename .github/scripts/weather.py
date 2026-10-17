@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -7,6 +8,8 @@ from zoneinfo import ZoneInfo
 ROOT = Path(__file__).resolve().parents[2]
 PLAN = json.loads((ROOT / "data/plan.json").read_text(encoding="utf-8"))
 OUT = ROOT / "data/weather.json"
+TRIP = PLAN["trip"]
+TZ = TRIP["timezone"]
 
 days = PLAN["days"]
 start, end = days[0]["date"], days[-1]["date"]
@@ -22,7 +25,7 @@ for key, loc in PLAN["locations"].items():
         "https://api.open-meteo.com/v1/forecast"
         f"?latitude={loc['lat']}&longitude={loc['lon']}"
         f"&daily={','.join(DAILY)}&hourly={','.join(HOURLY)}&wind_speed_unit=ms"
-        f"&timezone=Asia%2FTokyo&start_date={start}&end_date={end}"
+        f"&timezone={urllib.parse.quote(TZ, safe='')}&start_date={start}&end_date={end}"
     )
     with urllib.request.urlopen(url, timeout=30) as res:
         body = json.load(res)
@@ -51,7 +54,7 @@ for key, loc in PLAN["locations"].items():
 
 prev = json.loads(OUT.read_text(encoding="utf-8")) if OUT.exists() else {}
 prev_rain, prev_plan = prev.get("rain", {}), prev.get("plan", {})
-today = datetime.now(ZoneInfo("Asia/Tokyo")).date().isoformat()
+today = datetime.now(ZoneInfo(TZ)).date().isoformat()
 by_date = {d["date"]: d for d in days}
 
 
@@ -60,19 +63,33 @@ def rainy(date, key):
     return bool(w and w["pop"] is not None and w["pop"] >= PLAN["rainThreshold"])
 
 
+def has(date, key):
+    return key in by_date[date]["plans"]
+
+
+# 고정된 일정이 나중에 plan.json에서 빠졌으면 그날 기본 일정으로 봄
+def locked_key(date):
+    key = prev_plan.get(date, by_date[date]["default"])
+    return key if has(date, key) else by_date[date]["default"]
+
+
 # 당일과 지난 날짜는 한 번 정해진 일정과 비 판정을 유지해야 여행 중 일정이 갑자기 바뀌지 않음
-locked = {d: prev_plan.get(d, by_date[d]["default"]) for d in by_date if d <= today}
+locked = {d: locked_key(d) for d in by_date if d <= today}
 default = {d: by_date[d]["default"] for d in by_date}
 
-# 비 오는 날 미야지마나 오노미치를 시내 일정과 맞바꿈. 둘 다 비면 미야지마를 우선해 맑은 날로 보냄
-WEIGHT = {"miyajima": 4, "onomichi": 2, "city": 0}
+# 가중치가 있는 일정에 비가 오면 base 일정 날짜와 맞바꿈. 여러 곳이 비면 가중치가 큰 일정이 맑은 날을 가져감.
+# 맞바꿀 두 날짜 모두 서로의 일정을 plan.json에 갖고 있을 때만 후보가 됨
+SWAP = TRIP.get("swap") or {}
+WEIGHT = SWAP.get("weights", {})
+BASE = SWAP.get("base")
 candidates = [dict(default)]
-city_date = next((d for d, k in default.items() if k == "city"), None)
-if city_date:
-    for d, k in default.items():
-        if k in ("miyajima", "onomichi"):
+for d, k in default.items():
+    if k not in WEIGHT:
+        continue
+    for b, bk in default.items():
+        if bk == BASE and has(d, BASE) and has(b, k):
             c = dict(default)
-            c[d], c[city_date] = "city", k
+            c[d], c[b] = BASE, k
             candidates.append(c)
 
 
