@@ -1075,6 +1075,7 @@ html:not(.motion) .wx-m .a-gust { opacity: 1; stroke-dasharray: none; }
     // 숨겨진 시트 안에서 그린 아이콘은 iOS Safari 에서 움직임이 시작되지 않을 수 있어, 시트가 보인 뒤 아이콘을 다시 그려 움직임을 시작시킴
     requestAnimationFrame(function () {
       Array.prototype.forEach.call(box.querySelectorAll('.wx-hero .wx-ic, .wx-m i'), function (n) { n.innerHTML = n.innerHTML; });
+      syncMotion(box, true);
     });
   }
 
@@ -1139,6 +1140,16 @@ html:not(.motion) .wx-m .a-gust { opacity: 1; stroke-dasharray: none; }
     Array.prototype.forEach.call(nodes, function (n) { io.observe(n); });
   }
 
+  // 아이콘 움직임을 문서 시간 기준으로 맞춤. 날짜를 밀어 넘길 때 미리보기와 새로 그린 화면의 움직임이 같은 위치라 끊기지 않음.
+  // 한 번만 도는 움직임(습도 차오르기)은 intro 일 때만 처음부터 재생하고, 아니면 끝난 상태로 둠
+  function syncMotion(root, intro) {
+    if (!root.getAnimations) return;
+    root.getAnimations({ subtree: true }).forEach(function (a) {
+      if (!a.animationName || a.animationName.indexOf('a-') !== 0) return;
+      var once = a.effect && a.effect.getTiming().iterations !== Infinity;
+      if (!once || !intro) a.startTime = 0;
+    });
+  }
   function renderDay(i, dir, keepScroll, quiet) {
     var y = window.scrollY;
     current = i;
@@ -1146,6 +1157,7 @@ html:not(.motion) .wx-m .a-gust { opacity: 1; stroke-dasharray: none; }
     var main = document.getElementById('day');
     main.textContent = '';
     fillDay(main, i);
+    syncMotion(main, !quiet);
 
     if (dir && motionOn() && main.animate) {
       main.animate([{ transform: 'translateX(' + (dir * 100) + '%)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
@@ -1590,6 +1602,7 @@ html:not(.motion) .wx-m .a-gust { opacity: 1; stroke-dasharray: none; }
         Array.prototype.forEach.call(rows, function (r, j) { setPast(r, j < hit); });
       }
       document.body.appendChild(peek);
+      syncMotion(peek, false);
       peekI = i;
     };
     main.addEventListener('touchstart', function (e) {
