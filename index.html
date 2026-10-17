@@ -1143,13 +1143,14 @@ html:not(.motion) .wx-m .a-gust { opacity: 1; stroke-dasharray: none; }
     var main = document.getElementById('day');
     main.textContent = '';
     fillDay(main, i);
-    syncMotion(main, !quiet);
 
     if (dir && motionOn() && main.animate) {
       main.animate([{ transform: 'translateX(' + (dir * 100) + '%)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
     }
     if (keepScroll) window.scrollTo(0, y);
     if (quiet) settle(main); else reveal(main);
+    // settle 로 등장 상태를 먼저 정한 뒤에 맞춰야 함. 먼저 부르면 스타일이 계산되면서 카드 등장 효과가 다시 재생돼 화면이 흔들림
+    syncMotion(main, !quiet);
     markNow(false);
   }
 
