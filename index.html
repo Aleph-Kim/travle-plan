@@ -1383,10 +1383,16 @@ a { color: var(--blue); text-decoration: none; }
     n.addEventListener('click', function () { closeSheet(n.closest('.sheet')); });
   });
 
-  // 시트는 아래로 끌어내려 닫음. 안쪽 내용이 스크롤된 상태면 먼저 스크롤로 둠 (새로고침 안내는 버튼으로만 닫음)
+  // 시트는 아래로 끌어내려 닫음. 안쪽 내용이 스크롤된 상태면 먼저 스크롤로 둠.
+  // 새 일정 안내는 끌어내리거나 바깥을 눌러 닫으면 "나중에"와 같게 처리해야 같은 알림이 바로 다시 뜨지 않음
   Array.prototype.forEach.call(document.querySelectorAll('.sheet'), function (s) {
-    if (!s.querySelector('[data-close]')) return;
     var panel = s.querySelector('.panel'), scrim = s.querySelector('.scrim');
+    var dismiss = s.id === 'upd-sheet' ? function () { document.getElementById('upd-later').click(); } : function () { closeSheet(s); };
+    if (s.id === 'upd-sheet') scrim.addEventListener('click', dismiss);
+    // 어두운 바깥 영역을 밀어도 뒤 화면이 스크롤되지 않게 막음 (iOS는 body overflow 만으로는 안 막힘)
+    var block = function (e) { e.preventDefault(); };
+    scrim.addEventListener('touchmove', block, { passive: false });
+    scrim.addEventListener('wheel', block, { passive: false });
     var y0 = null, x0 = 0, dy = 0, lock = null, t0 = 0;
     var reset = function () { panel.style.transition = ''; scrim.style.transition = ''; panel.style.transform = ''; scrim.style.opacity = ''; };
     panel.addEventListener('touchstart', function (e) {
@@ -1411,7 +1417,7 @@ a { color: var(--blue); text-decoration: none; }
       if (lock !== 'y') return;
       var shut = dy > Math.min(120, panel.offsetHeight * 0.25) || (dy > 40 && Date.now() - t0 < 250);
       reset();
-      if (shut) closeSheet(s);
+      if (shut) dismiss();
     };
     panel.addEventListener('touchend', end, { passive: true });
     panel.addEventListener('touchcancel', end, { passive: true });
