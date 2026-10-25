@@ -1,0 +1,1288 @@
+(function () {
+  'use strict';
+
+  // 화면 뼈대는 여행마다 같아서 여행 폴더의 index.html 대신 여기서 넣음
+  document.body.insertAdjacentHTML('afterbegin', [
+    '<div id="ptr" aria-hidden="true"><svg viewBox="0 0 28.6 28" fill="currentColor"><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(0 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(30 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(60 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(90 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(120 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(150 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(180 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(210 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(240 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(270 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(300 14.3 14)"/><rect x="13" y="2" width="2.6" height="7" rx="1.3" transform="rotate(330 14.3 14)"/></svg></div>',
+    '<header class="hero">',
+    '  <div>',
+    '    <h1 id="trip-name">&nbsp;</h1>',
+    '    <p id="trip-period">&nbsp;</p>',
+    '  </div>',
+    '  <button class="icon-btn" id="open-set" type="button" aria-label="설정" data-ta>',
+    '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
+    '  </button>',
+    '</header>',
+    '<div class="offline" id="net" hidden data-t>오프라인. 마지막으로 받은 일정과 날씨를 표시 중</div>',
+    '<section class="group" id="flights"><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div><div class="row"><div class="sk sk-k"></div><div><div class="sk sk-leg"></div><div class="sk sk-leg"></div></div></div></section>',
+    '<nav class="bar" id="bar">',
+    '  <div class="seg" id="tabs" role="tablist" aria-label="날짜" data-ta><div class="seg-pill" id="pill"></div><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span><span class="sk sk-tab"></span></div>',
+    '</nav>',
+    '<main id="day">',
+    '  <div class="skel" aria-label="불러오는 중" data-ta>',
+    '    <div class="sk sk-eyebrow"></div>',
+    '    <div class="sk sk-title"></div>',
+    '    <div class="sk sk-point"></div>',
+    '    <div class="sk-row"><div class="sk sk-stat"></div><div class="sk sk-stat"></div></div>',
+    '    <div class="sk sk-wx"></div>',
+    '    <div class="sk sk-sec"></div>',
+    '    <div class="sk sk-card"></div>',
+    '    <div class="sk sk-line"></div>',
+    '    <div class="sk sk-card"></div>',
+    '    <div class="sk sk-card"></div>',
+    '  </div>',
+    '</main>',
+    '<section id="extras"><div class="sk sk-exh"></div><div class="sk sk-ex"></div><div class="sk sk-ex"></div><div class="sk sk-ex"></div></section>',
+    '<button id="nowcap" type="button" aria-label="현재 일정으로 이동" data-ta><span class="a"></span><span class="go" data-t>이동</span><span class="b"></span></button>',
+    '',
+    '<div class="sheet" id="map-sheet" aria-hidden="true">',
+    '  <div class="scrim" data-close></div>',
+    '  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="map-title">',
+    '    <div class="grab"></div>',
+    '    <div class="panel-head"><b id="map-title"></b><button class="btn" type="button" data-close data-t>닫기</button></div>',
+    '    <div id="map-frame"></div>',
+    '  </div>',
+    '</div>',
+    '',
+    '<div class="sheet" id="wx-sheet" aria-hidden="true">',
+    '  <div class="scrim" data-close></div>',
+    '  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="wx-title">',
+    '    <div class="grab"></div>',
+    '    <div class="panel-head"><b id="wx-title"></b><button class="btn" type="button" data-close data-t>닫기</button></div>',
+    '    <div id="wx-body"></div>',
+    '  </div>',
+    '</div>',
+    '',
+    '<div class="sheet" id="set-sheet" aria-hidden="true">',
+    '  <div class="scrim" data-close></div>',
+    '  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="set-title">',
+    '    <div class="grab"></div>',
+    '    <div class="panel-head"><b id="set-title" data-t>설정</b><button class="btn" type="button" data-close data-t>완료</button></div>',
+    '    <div class="set">',
+    '      <div class="set-row col">',
+    '        <span data-t>언어<small data-t>화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장</small></span>',
+    '        <div class="lang-seg" id="lang-seg" role="radiogroup"><button type="button" data-lang="ko">한국어</button><button type="button" data-lang="en">English</button><button type="button" data-lang="ja">日本語</button></div>',
+    '      </div>',
+    '      <div class="set-row">',
+    '        <span data-t>인터랙션 효과<small data-t>화면 전환, 등장 효과. 이 설정만 이 기기에 저장</small></span>',
+    '        <span class="switch"><input type="checkbox" id="motion-toggle" aria-label="인터랙션 효과" data-ta><span></span></span>',
+    '      </div>',
+    '      <div class="set-row">',
+    '        <span data-t>새로고침<small data-t>홈 화면 앱용. 받아 둔 새 버전도 이때 반영</small></span>',
+    '        <button class="btn" type="button" id="reload-btn" style="white-space: nowrap" data-t>다시 불러오기</button>',
+    '      </div>',
+    '    </div>',
+    '  </div>',
+    '</div>',
+    '',
+    '<div class="sheet" id="upd-sheet" aria-hidden="true">',
+    '  <div class="scrim"></div>',
+    '  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="upd-title">',
+    '    <div class="grab"></div>',
+    '    <div class="panel-head"><b id="upd-title" data-t>새 일정이 있습니다</b></div>',
+    '    <p class="rain-desc" data-t>일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.</p>',
+    '    <div class="upd-acts"><button class="btn" type="button" id="upd-later" data-t>나중에</button><button class="btn fill" type="button" id="upd-now" data-t>새로고침</button></div>',
+    '  </div>',
+    '</div>',
+    '',
+    '<div class="sheet" id="rain-sheet" aria-hidden="true">',
+    '  <div class="scrim" data-close></div>',
+    '  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="rain-title">',
+    '    <div class="grab"></div>',
+    '    <div class="panel-head"><b id="rain-title" data-t>비 예보로 바뀐 일정</b><button class="btn" type="button" data-close data-t>확인</button></div>',
+    '    <p class="rain-desc" data-t>오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.</p>',
+    '    <div id="rain-body"></div>',
+    '  </div>',
+    '</div>',
+    ''
+  ].join('\n'));
+
+  var MOTION_KEY = 'trip-motion';
+  var PICK_KEY = 'trip-pick-v2';
+  var EMBED = 'https://www.google.com/maps/embed/v1/';
+  // 여행 폴더 이름이 슬러그이고, 그 여행의 일정, 번역, 날씨는 data/<슬러그>/ 에 있음
+  var SLUG = new URL('./', location.href).pathname.split('/').filter(Boolean).pop();
+  var DATA = '../data/' + SLUG + '/';
+  // Pages 재배포를 기다리지 않도록 저장소 원본 파일을 직접 읽음
+  var WEATHER_URL = 'https://raw.githubusercontent.com/Aleph-Kim/travle-plan/main/data/' + SLUG + '/weather.json';
+  // 다가오는 여행이 여럿일 때 서로의 안내 기록을 덮어쓰지 않도록 여행별로 저장
+  var RAIN_SEEN_KEY = 'trip-rain-seen:' + SLUG;
+  var plan = null;
+  var weather = null;
+  var current = 0;
+  var io = null;
+
+  // 언어는 기기별 설정. 화면 문구는 아래 UI 사전, 일정 내용은 여행별 i18n.json (한국어 원문이 키)
+  var LANG_KEY = 'trip-lang';
+  var LANG = (function () { var l = load(LANG_KEY); return l === 'en' || l === 'ja' ? l : 'ko'; })();
+  var UI = {"en": {"설정": "Settings", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "Offline. Showing the last downloaded plan and weather", "날짜": "Dates", "불러오는 중": "Loading", "현재 일정으로 이동": "Go to the current item", "이동": "Go", "닫기": "Close", "완료": "Done", "언어": "Language", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "All screen text and plan content. Saved on this device only", "인터랙션 효과": "Motion effects", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "Screen transitions and reveal effects. Saved on this device only", "새로고침": "Refresh", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "For the home screen app. Also applies any downloaded update", "다시 불러오기": "Reload", "새 일정이 있습니다": "New plan available", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "The plan, or a weather-based change to it, has been updated. Refresh now? If you tap Later, it applies automatically the next time you open the app.", "나중에": "Later", "비 예보로 바뀐 일정": "Changed for rain", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "Today's plan stays as is. Only later days were changed. Tap a date to see the new plan.", "맑음": "Clear", "대체로 맑음": "Mostly clear", "구름 조금": "Partly cloudy", "흐림": "Cloudy", "안개": "Fog", "이슬비": "Drizzle", "비": "Rain", "눈": "Snow", "소나기": "Showers", "뇌우": "Thunderstorm", "{t} 지도": "{t} map", "구글 지도": "Google Maps", "미리보기": "Preview", "구글 {n}": "Google {n}", "타베로그 {n}": "Tabelog {n}", "후기 요약": "Review summary", "좋은 점": "Pros", "아쉬운 점": "Cons", "추천": "Pick", "여러 곳 체크 가능": "Pick any", "하나 고르기": "Pick one", "낮음": "Low", "보통": "Moderate", "높음": "High", "매우 높음": "Very high", "위험": "Extreme", "지금, 체감 {t}": "Now, feels like {t}", "낮 최고 기온": "Daytime high", "최대 풍속": "Max wind", "평균 습도": "Avg humidity", "강수 확률": "Rain chance", "자외선": "UV", "최고 {t}": "H {t}", "최저 {t}": "L {t}", "지금": "Now", "오전 {h}시": "{h} AM", "오후 {h}시": "{h} PM", "{d} {p} 날씨": "{p} weather, {d}", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}, rain {r}, sunrise {a}, sunset {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "Hourly forecast will be added at the next update", "날씨": "Weather", "바람": "Wind", "습도": "Humidity", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "Wind in m/s. Rain chance in blue is at or above the {n}% rain threshold", "{t} 갱신, Open-Meteo 예보": "Updated {t}, Open-Meteo forecast", "{p} 날씨": "{p} weather", "이 날짜 예보가 아직 없음": "No forecast for this date yet", "날씨 데이터를 아직 불러오지 못함": "Weather data not loaded yet", "{t} 갱신": "Updated {t}", "시간별 보기": "Hourly", "없음": "None", "교통과 입장료": "Transport and admission", "식비 제외": "Excluding food", "노천탕": "Open-air bath", "하루 한 번": "Once a day", "날씨에 맞춰 날짜를 바꿨습니다": "Days swapped for the weather", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan from {o} because of rain", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "Originally the {a} day. Swapped with the {b} plan because of rain", "빠진 일정: {n}": "Dropped: {n}", "비 예보로 일정이 바뀌었습니다": "Plan changed for rain", "수건 챙기기": "Bring a towel", "일정": "Schedule", "지금  {t}": "Now  {t}", "다음  {a}  {t}": "Next  {a}  {t}", "오늘 마지막 일정": "Last item today", "지난 일정 펼치기": "Expand past item", "접기": "Collapse", "자세히 보기": "Show details", "저장 장소 더보기": "More saved places", "{n}곳": "{n} places", "출발": "Dep", "도착": "Arr", "원래 {a} 일정에서 {b} 일정으로 바뀜": "Changed from {a} to {b}", "비 예보로 빠지는 일정: {n}": "Dropped for rain: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "Couldn't load the plan. Please check your network connection.", "{n}{u}": "{n} {u}", "러닝": "run", "내일 {t} {n}까지 약 {h}시간 {m}분": "About {h}h {m}m until {n} at {t} tomorrow", "어젯밤 {a}부터 약 {h}시간 {m}분. {t} {n}부터 하루 시작": "About {h}h {m}m since {a} last night. The day starts with {n} at {t}", "오늘 새벽 {a}부터 약 {h}시간 {m}분. {t} {n}부터 하루 시작": "About {h}h {m}m since {a} this morning. The day starts with {n} at {t}"}, "ja": {"설정": "設定", "오프라인. 마지막으로 받은 일정과 날씨를 표시 중": "オフライン。最後に受け取った予定と天気を表示中", "날짜": "日付", "불러오는 중": "読み込み中", "현재 일정으로 이동": "現在の予定へ移動", "이동": "移動", "닫기": "閉じる", "완료": "完了", "언어": "言語", "화면 문구와 일정 내용 전체. 이 설정만 이 기기에 저장": "画面の文言と予定の内容すべて。この設定はこの端末にのみ保存", "인터랙션 효과": "アニメーション効果", "화면 전환, 등장 효과. 이 설정만 이 기기에 저장": "画面切り替えと表示効果。この設定はこの端末にのみ保存", "새로고침": "更新", "홈 화면 앱용. 받아 둔 새 버전도 이때 반영": "ホーム画面アプリ用。受け取った新しいバージョンもこのとき反映", "다시 불러오기": "再読み込み", "새 일정이 있습니다": "新しい予定があります", "일정이나 날씨에 따른 일정 변경이 새로 올라왔습니다. 지금 새로고침할까요? 나중에를 누르면 앱을 다시 열 때 자동으로 반영됩니다.": "予定、または天気による予定変更が更新されました。今すぐ更新しますか？「あとで」を押すと、次にアプリを開いたときに自動で反映されます。", "나중에": "あとで", "비 예보로 바뀐 일정": "雨予報で変わった予定", "확인": "OK", "오늘 일정은 그대로 두고, 내일 이후 일정만 바꿨습니다. 날짜를 누르면 바뀐 일정으로 이동합니다.": "今日の予定はそのままで、明日以降の予定だけ変更しました。日付を押すと変更後の予定へ移動します。", "맑음": "晴れ", "대체로 맑음": "おおむね晴れ", "구름 조금": "晴れ時々曇り", "흐림": "曇り", "안개": "霧", "이슬비": "霧雨", "비": "雨", "눈": "雪", "소나기": "にわか雨", "뇌우": "雷雨", "{t} 지도": "{t} 地図", "구글 지도": "Google マップ", "미리보기": "プレビュー", "구글 {n}": "Google {n}", "타베로그 {n}": "食べログ {n}", "후기 요약": "口コミ要約", "좋은 점": "良い点", "아쉬운 점": "気になる点", "추천": "おすすめ", "여러 곳 체크 가능": "複数選択可", "하나 고르기": "1つ選ぶ", "낮음": "弱い", "보통": "中程度", "높음": "強い", "매우 높음": "非常に強い", "위험": "極端に強い", "지금, 체감 {t}": "現在、体感 {t}", "낮 최고 기온": "日中の最高気温", "최대 풍속": "最大風速", "평균 습도": "平均湿度", "강수 확률": "降水確率", "자외선": "紫外線", "최고 {t}": "最高 {t}", "최저 {t}": "最低 {t}", "지금": "今", "오전 {h}시": "午前{h}時", "오후 {h}시": "午後{h}時", "{d} {p} 날씨": "{d} {p}の天気", "{c}, 강수량 {r}, 일출 {a}, 일몰 {b}": "{c}、降水量 {r}、日の出 {a}、日の入り {b}", "시간별 예보는 다음 갱신 때 추가됩니다": "時間別予報は次回の更新で追加されます", "날씨": "天気", "바람": "風", "습도": "湿度", "바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상": "風速は m/s、青い降水確率は雨判定基準の{n}%以上", "{t} 갱신, Open-Meteo 예보": "{t} 更新、Open-Meteo 予報", "{p} 날씨": "{p}の天気", "이 날짜 예보가 아직 없음": "この日の予報はまだありません", "날씨 데이터를 아직 불러오지 못함": "天気データをまだ読み込めていません", "{t} 갱신": "{t} 更新", "시간별 보기": "時間別", "없음": "なし", "교통과 입장료": "交通費と入場料", "식비 제외": "食費別", "노천탕": "露天風呂", "하루 한 번": "1日1回", "날씨에 맞춰 날짜를 바꿨습니다": "天気に合わせて日程を入れ替えました", "원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{o}の{b}の日程と入れ替え", "원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈": "この日は元々{a}の日程。雨予報のため{b}の日程と入れ替え", "빠진 일정: {n}": "外した予定: {n}", "비 예보로 일정이 바뀌었습니다": "雨予報で予定を変更しました", "수건 챙기기": "タオルを持参", "일정": "予定", "지금  {t}": "今  {t}", "다음  {a}  {t}": "次  {a}  {t}", "오늘 마지막 일정": "今日最後の予定", "지난 일정 펼치기": "過ぎた予定を開く", "접기": "閉じる", "자세히 보기": "詳しく見る", "저장 장소 더보기": "保存した場所をもっと見る", "{n}곳": "{n}件", "출발": "出発", "도착": "到着", "원래 {a} 일정에서 {b} 일정으로 바뀜": "{a}から{b}に変更", "비 예보로 빠지는 일정: {n}": "雨予報で外す予定: {n}", "일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.": "予定を読み込めませんでした。ネットワーク接続を確認してください。", "{n}{u}": "{n}{u}", "러닝": "ランニング", "내일 {t} {n}까지 약 {h}시간 {m}분": "明日{t}の{n}まで約{h}時間{m}分", "어젯밤 {a}부터 약 {h}시간 {m}분. {t} {n}부터 하루 시작": "昨夜{a}から約{h}時間{m}分。{t}の{n}から一日スタート", "오늘 새벽 {a}부터 약 {h}시간 {m}분. {t} {n}부터 하루 시작": "今朝{a}から約{h}時間{m}分。{t}の{n}から一日スタート"}};
+  function T(k, v) {
+    var s = (UI[LANG] && UI[LANG][k]) || k;
+    return v ? s.replace(/\{(\w)\}/g, function (m, n) { return v[n] == null ? m : v[n]; }) : s;
+  }
+  var I18N = null, rawPlan = null;
+  // 장소 ID, 검색어처럼 지도에 넘기는 값은 번역하지 않음
+  var KEEP = { pid: 1, q: 1, home: 1, from: 1, to: 1, timezone: 1 };
+  function localize(o, k) {
+    if (typeof o === 'string') return KEEP[k] || LANG === 'ko' || !I18N || !I18N[LANG] ? o : (I18N[LANG][o] || o);
+    if (Array.isArray(o)) return o.map(function (x) { return localize(x, k); });
+    if (!o || typeof o !== 'object') return o;
+    var r = {};
+    Object.keys(o).forEach(function (key) { r[key] = localize(o[key], key); });
+    // 간식 선택 기록은 언어가 바뀌어도 이어지도록 한국어 원문 제목으로 저장
+    if (typeof (o.title || o.name) === 'string') r._k = o.title || o.name;
+    return r;
+  }
+  function sep() { return LANG === 'ja' ? '。' : '. '; }
+  function comma() { return LANG === 'ja' ? '、' : ', '; }
+  function applyStatic() {
+    document.documentElement.lang = LANG;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-t]'), function (n) {
+      var t = n.firstChild;
+      if (!t || t.nodeType !== 3) return;
+      if (!n.getAttribute('data-t')) n.setAttribute('data-t', t.nodeValue);
+      t.nodeValue = T(n.getAttribute('data-t'));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-ta]'), function (n) {
+      if (!n.getAttribute('data-ta')) n.setAttribute('data-ta', n.getAttribute('aria-label'));
+      n.setAttribute('aria-label', T(n.getAttribute('data-ta')));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#lang-seg button'), function (b) {
+      b.setAttribute('aria-checked', b.getAttribute('data-lang') === LANG ? 'true' : 'false');
+    });
+  }
+
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      if (k === 'text') n.textContent = attrs[k];
+      else if (k === 'class') n.className = attrs[k];
+      else if (k === 'html') n.innerHTML = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    });
+    (kids || []).forEach(function (c) { if (c) n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+    return n;
+  }
+
+  // 사생활 보호 모드처럼 저장소가 막혀도 페이지는 동작해야 함
+  function load(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  function motionOn() { return document.documentElement.classList.contains('motion'); }
+  function applyMotion(on) {
+    document.documentElement.classList.toggle('motion', on);
+    document.getElementById('motion-toggle').checked = on;
+  }
+
+  function grouped(n) { return n.toLocaleString('ko-KR'); }
+  // 금액 표기. 단위는 plan.json의 trip.currency (번역은 i18n.json)
+  function price(n) { return T('{n}{u}', { n: n, u: plan.trip.currency }); }
+
+  // 여행지 현지 시각 기준이어야 다른 나라에서 열어도 오늘 탭과 현재 일정이 맞음 (시간대는 plan.json의 trip.timezone)
+  function tripNow() {
+    var o = {};
+    new Intl.DateTimeFormat('en-CA', { timeZone: plan.trip.timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+      .formatToParts(new Date()).forEach(function (p) { o[p.type] = p.value; });
+    return { date: o.year + '-' + o.month + '-' + o.day, min: +o.hour * 60 + +o.minute };
+  }
+  function toMin(t) { var m = /^(\d{1,2}):(\d{2})$/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; }
+  // 자정을 넘긴 취침(late)은 그날 새벽이 아니라 다음 날 새벽이라 24시간을 더해서 비교
+  function stopMin(s) { var m = toMin(s.time); return m == null ? null : m + (s.late ? 24 * 60 : 0); }
+
+  function wmo(c) {
+    return T(wmoKo(c));
+  }
+  function wmoKo(c) {
+    if (c === 0) return '맑음'; if (c === 1) return '대체로 맑음'; if (c === 2) return '구름 조금'; if (c === 3) return '흐림';
+    if (c === 45 || c === 48) return '안개'; if (c >= 51 && c <= 57) return '이슬비'; if (c >= 61 && c <= 67) return '비';
+    if (c >= 71 && c <= 77) return '눈'; if (c >= 80 && c <= 82) return '소나기'; if (c >= 95) return '뇌우'; return '-';
+  }
+
+  function dayWeather(day) {
+    return (weather && weather.data && weather.data[day.weather] && weather.data[day.weather][day.date]) || null;
+  }
+  // 날짜 맞바꿈(plan)과 비 판정(rain)은 매시간 날씨 작업이 정하고, 당일과 지난 날짜는 그 시점 값으로 고정됨
+  function isRainy(day) { return !!(weather && weather.rain && weather.rain[day.date]); }
+  function planKey(day) {
+    var k = weather && weather.plan && weather.plan[day.date];
+    return k && day.plans[k] ? k : day.default;
+  }
+  function itemsOf(ids) { return ids.map(function (i) { return plan.items[i]; }); }
+  function idOf(s) { return s.pid || s.title || s.name; }
+
+  // 그날 실제로 보여줄 일정. 비 오는 날은 일정 전체가 비 버전으로 바뀌고, 빠진 장소를 따로 모아 안내에 씀
+  function view(day) {
+    var key = planKey(day), pl = day.plans[key], rainy = isRainy(day);
+    var stops = itemsOf(rainy ? pl.rain : pl.sun);
+    var kept = stops.map(idOf);
+    var skipped = rainy ? itemsOf(pl.sun).filter(function (s) { return s.type !== 'move' && kept.indexOf(idOf(s)) === -1; }) : [];
+    var origin = null;
+    if (key !== day.default) plan.days.forEach(function (d) { if (d.default === key) origin = d; });
+    return {
+      date: day.date, label: day.label, full: day.full, key: key, rainy: rainy,
+      title: pl.title, point: rainy && pl.rainPoint ? pl.rainPoint : pl.point, weather: pl.weather,
+      towel: pl.towel, rainNote: pl.rainNote, stops: stops, skipped: skipped,
+      swapped: key !== day.default, defaultTitle: day.plans[day.default].title, origin: origin
+    };
+  }
+
+  function dayCost(stops) {
+    return stops.reduce(function (a, s) { return a + (typeof s.cost === 'number' ? s.cost : 0); }, 0);
+  }
+
+  // 여러 정보가 한 줄에 몰리면 읽기 어려워서 문장 단위로 줄을 나눔
+  function lines(cls, text) {
+    return el('div', { class: cls }, (text || '').split(/\.\s+|。/).filter(function (t) { return t.trim(); }).map(function (t) { return el('div', { text: t.replace(/\.$/, '') }); }));
+  }
+
+  var ICON = {
+    chev: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 2l4 4-4 4"/></svg>',
+    towel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M6 6v14h12V6M9 10h6M9 14h6"/></svg>',
+    rain: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 15a5 5 0 1 1 9.6-2H17a3.5 3.5 0 0 1 0 7H8a4 4 0 0 1-1-5"/><path d="M9 21l1-2M13 21l1-2"/></svg>'
+  };
+
+  // 링크는 place_id 로 만들고, query 는 place_id 를 못 찾을 때만 쓰이는 대체값
+  function placeLink(s) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(s.q || s.name) + '&query_place_id=' + s.pid;
+  }
+  function dirLink(fromName, from, toName, to, mode, via) {
+    var u = 'https://www.google.com/maps/dir/?api=1&origin=' + encodeURIComponent(fromName) + '&origin_place_id=' + from +
+      '&destination=' + encodeURIComponent(toName) + '&destination_place_id=' + to + '&travelmode=' + mode;
+    if (via) u += '&waypoints=' + encodeURIComponent(via.map(function (v) { return v.name; }).join('|')) +
+      '&waypoint_place_ids=' + via.map(function (v) { return v.pid; }).join('|');
+    return u;
+  }
+  function placeEmbed(pid) { return EMBED + 'place?key=' + window.MAPS_KEY + '&language=' + LANG + '&zoom=16&q=place_id:' + pid; }
+  function dirEmbed(from, to, mode, via) {
+    var u = EMBED + 'directions?key=' + window.MAPS_KEY + '&language=' + LANG + '&origin=place_id:' + from + '&destination=place_id:' + to + '&mode=' + mode;
+    if (via) u += '&waypoints=' + via.map(function (v) { return 'place_id:' + v.pid; }).join('|');
+    return u;
+  }
+
+  // 시트가 열린 동안 뒤 화면이 스크롤되지 않게 body 를 그 자리에 고정하고, 닫을 때 원래 위치로 되돌림
+  // (iOS 는 overflow:hidden 만으로는 터치 스크롤이 막히지 않음)
+  var lockY = null;
+  function lockScroll(on) {
+    var b = document.body.style;
+    if (on && lockY === null) {
+      lockY = window.scrollY;
+      b.position = 'fixed'; b.top = -lockY + 'px'; b.left = '0'; b.right = '0';
+    } else if (!on && lockY !== null) {
+      b.position = ''; b.top = ''; b.left = ''; b.right = '';
+      window.scrollTo(0, lockY);
+      lockY = null;
+    }
+  }
+  function openSheet(id) {
+    var s = document.getElementById(id);
+    s.classList.add('open'); s.setAttribute('aria-hidden', 'false');
+    lockScroll(true);
+  }
+  function closeSheet(s) {
+    s.classList.remove('open'); s.setAttribute('aria-hidden', 'true');
+    if (!document.querySelector('.sheet.open')) lockScroll(false);
+    if (s.id === 'map-sheet') setTimeout(function () { document.getElementById('map-frame').textContent = ''; }, motionOn() ? 500 : 0);
+  }
+  // 저속망 대비 지도는 눌렀을 때만 불러옴
+  function showMap(title, src) {
+    document.getElementById('map-title').textContent = title;
+    var f = document.getElementById('map-frame');
+    f.textContent = '';
+    f.appendChild(el('iframe', { src: src, referrerpolicy: 'no-referrer-when-downgrade', title: T('{t} 지도', { t: title }) }));
+    openSheet('map-sheet');
+  }
+
+  function acts(title, link, embed) {
+    var row = el('div', { class: 'acts' });
+    if (link) row.appendChild(el('a', { class: 'btn', href: link, target: '_blank', rel: 'noopener', text: T('구글 지도') }));
+    if (embed && window.MAPS_KEY) {
+      var b = el('button', { class: 'btn', type: 'button', text: T('미리보기') });
+      b.addEventListener('click', function () { showMap(title, embed); });
+      row.appendChild(b);
+    }
+    return row.childNodes.length ? row : null;
+  }
+
+  function pills(s) {
+    var box = el('div', { class: 'pills' });
+    if (s.g) box.appendChild(el('span', { class: 'pill g' }, [T('구글 {n}', { n: s.g[0].toFixed(1) }), el('small', { text: '(' + grouped(s.g[1]) + ')' })]));
+    if (s.tb) box.appendChild(el('span', { class: 'pill t' }, [T('타베로그 {n}', { n: s.tb[0].toFixed(2) }), el('small', { text: '(' + grouped(s.tb[1]) + ')' })]));
+    return box.childNodes.length ? box : null;
+  }
+
+  function reviews(s) {
+    if (!s.pro && !s.con) return null;
+    var wrap = el('div', { class: 'disc' });
+    var btn = el('button', { class: 'disc-btn', type: 'button', 'aria-expanded': 'false', html: T('후기 요약') + ' ' + ICON.chev });
+    var inner = el('div');
+    if (s.pro) { inner.appendChild(el('div', { class: 'rv-cap', text: T('좋은 점') })); inner.appendChild(el('ul', { class: 'rv-list pro' }, s.pro.map(function (t) { return el('li', { text: t }); }))); }
+    if (s.con) { inner.appendChild(el('div', { class: 'rv-cap', text: T('아쉬운 점') })); inner.appendChild(el('ul', { class: 'rv-list con' }, s.con.map(function (t) { return el('li', { text: t }); }))); }
+    btn.addEventListener('click', function () {
+      var open = wrap.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    wrap.appendChild(btn);
+    wrap.appendChild(el('div', { class: 'disc-body' }, [inner]));
+    return wrap;
+  }
+
+  function body(s) {
+    var t = el('div', { class: 'title', text: s.name });
+    if (s.rec) t.appendChild(el('span', { class: 'rec', text: T('추천') }));
+    var b = el('div', null, [t, pills(s)]);
+    if (s.note) b.appendChild(lines('note', s.note));
+    if (s.tip) b.appendChild(lines('tip', s.tip));
+    var r = reviews(s); if (r) b.appendChild(r);
+    var a = s.pid ? acts(s.name, placeLink(s), placeEmbed(s.pid)) : null;
+    if (a) b.appendChild(a);
+    return b;
+  }
+
+  function head(s) {
+    var h = el('div', { class: 'it-head' }, [el('span', { class: 'time', text: s.time || '' })]);
+    if (typeof s.cost === 'number' && s.cost > 0) h.appendChild(el('span', { class: 'cost', text: price(grouped(s.cost)) }));
+    return h;
+  }
+
+  var CHECK = '<svg class="chk" viewBox="0 0 22 22"><circle cx="11" cy="11" r="10"/><path d="M6.5 11.2l3 3 6-6"/></svg>';
+
+  function choiceCard(c, key) {
+    var chosen = (load(PICK_KEY) || {})[key] || [];
+    var card = el('div', { class: 'card' }, [head(c), el('div', { class: 'choice-tag' }, [c.title, el('span', { class: 'choice-hint', text: T(c.multi ? '여러 곳 체크 가능' : '하나 고르기') })])]);
+    if (c.note) card.appendChild(lines('note', c.note));
+    var box = el('div', { class: 'opts' + (c.multi ? ' multi' : '') + (chosen.length ? ' picked' : '') });
+    c.options.forEach(function (o, oi) {
+      var on = chosen.indexOf(oi) !== -1;
+      var pick = el('button', { class: 'opt-pick', type: 'button', 'aria-pressed': on ? 'true' : 'false', html: CHECK });
+      pick.appendChild(el('span', { class: 'title', text: o.name }));
+      // 고르지 않은 선택지는 이름 한 줄로 접어 두고, 꺾쇠로 펼쳐 볼 수 있게 함
+      var more = el('button', { class: 'opt-more', type: 'button', 'aria-label': T('자세히 보기'), html: ICON.chev });
+      var inner = el('div', null, [pills(o)]);
+      if (o.note) inner.appendChild(lines('note', o.note));
+      if (o.tip) inner.appendChild(lines('tip', o.tip));
+      var r = reviews(o); if (r) inner.appendChild(r);
+      var a = o.pid ? acts(o.name, placeLink(o), placeEmbed(o.pid)) : null; if (a) inner.appendChild(a);
+      // 펼쳐 볼 내용이 없는 선택지(생략 등)는 꺾쇠를 달지 않음
+      var opt = el('div', { class: 'opt' + (on ? ' on' : '') + (inner.childNodes.length ? '' : ' bare') }, [el('div', { class: 'opt-row' }, [pick, more]), el('div', { class: 'opt-body' }, [inner])]);
+      more.addEventListener('click', function () { opt.classList.toggle('peek'); });
+      pick.addEventListener('click', function () {
+        var st = load(PICK_KEY) || {};
+        var cur = st[key] || [];
+        var at = cur.indexOf(oi);
+        if (c.multi) { if (at === -1) cur.push(oi); else cur.splice(at, 1); } else { cur = at === -1 ? [oi] : []; }
+        st[key] = cur; save(PICK_KEY, st);
+        Array.prototype.forEach.call(box.children, function (n, j) {
+          var on2 = cur.indexOf(j) !== -1;
+          n.classList.toggle('on', on2);
+          n.classList.remove('peek');
+          n.querySelector('.opt-pick').setAttribute('aria-pressed', on2 ? 'true' : 'false');
+        });
+        box.classList.toggle('picked', cur.length > 0);
+      });
+      box.appendChild(opt);
+    });
+    card.appendChild(box);
+    return card;
+  }
+
+  // 러닝은 숙소에서 출발해 숙소로 돌아오는 순환이라 경유지를 waypoints 로 넘김
+  function runCard(r) {
+    var card = el('div', { class: 'card' }, [head(r), el('div', { class: 'title', text: r.name }), lines('tip', r.tip)]);
+    var a = acts(r.name, dirLink(r.homeName, r.home, r.homeName, r.home, 'walking', r.via), dirEmbed(r.home, r.home, 'walking', r.via));
+    if (a) card.appendChild(a);
+    return card;
+  }
+
+  function moveCard(m) {
+    var card = el('div', { class: 'card' }, [head(m), el('div', { class: 'title', text: m.name })]);
+    if (m.note) card.appendChild(lines('note', m.note));
+    if (m.route) {
+      var r = m.route;
+      var a = acts(r.label || m.name, dirLink(r.fromName, r.from, r.toName, r.to, r.mode), dirEmbed(r.from, r.to, r.mode));
+      if (a) card.appendChild(a);
+    }
+    return card;
+  }
+
+  // 취침 아이콘: 다른 선 아이콘과 같은 스타일의 초승달
+  var MOON_LINE = '<svg class="moon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#ffd66b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path class="a-moon" d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>';
+  function sleepCard(s) {
+    var text = el('div', null, [head(s), el('div', { class: 'title', text: s.name })]);
+    if (s.next) text.appendChild(el('div', { class: 's', text: s.next }));
+    return el('div', { class: 'card sleep-card' }, [el('div', { class: 'row' }, [el('span', { html: MOON_LINE }), text])]);
+  }
+  // 취침 카드에 다음 날 첫 일정까지 남은 시간을 붙임 (다음 날 날씨에 따른 일정 기준)
+  function withNext(s, i) {
+    var nd = plan.days[i + 1];
+    if (!nd) return s;
+    var first = view(nd).stops.filter(function (x) { return toMin(x.time) != null; })[0];
+    if (!first) return s;
+    var gap = 24 * 60 - stopMin(s) + toMin(first.time);
+    var r = {};
+    Object.keys(s).forEach(function (k) { r[k] = s[k]; });
+    r.next = T('내일 {t} {n}까지 약 {h}시간 {m}분', { t: first.time, n: first.type === 'run' ? T('러닝') : (first.title || first.name), h: Math.floor(gap / 60), m: gap % 60 });
+    return r;
+  }
+  // 하루 시작 카드: 전날에 취침이 있으면 그날 맨 위에 이어서 표시 (첫 일정 시각이 지나면 다른 일정처럼 접힘)
+  function wakeItem(i, stops) {
+    var pd = plan.days[i - 1];
+    if (!pd) return null;
+    var bed = view(pd).stops.filter(function (x) { return x.type === 'sleep'; })[0];
+    var first = stops.filter(function (x) { return toMin(x.time) != null; })[0];
+    if (!bed || !first) return null;
+    var gap = 24 * 60 - stopMin(bed) + toMin(first.time);
+    return { type: 'sleep', name: bed.name, time: '~ ' + first.time, _k: 'wake',
+      next: T(bed.late ? '오늘 새벽 {a}부터 약 {h}시간 {m}분. {t} {n}부터 하루 시작' : '어젯밤 {a}부터 약 {h}시간 {m}분. {t} {n}부터 하루 시작', { a: bed.time, h: Math.floor(gap / 60), m: gap % 60, t: first.time, n: first.type === 'run' ? T('러닝') : (first.title || first.name) }) };
+  }
+  function item(s, key) {
+    var kind = s.type === 'choice' ? 'choice' : s.type === 'run' ? 'run' : s.type === 'move' ? 'move' : s.type === 'sleep' ? 'sleep' : 'place';
+    var card = kind === 'choice' ? choiceCard(s, key) : kind === 'run' ? runCard(s) : kind === 'move' ? moveCard(s) : kind === 'sleep' ? sleepCard(s) : el('div', { class: 'card' }, [head(s), body(s)]);
+    return el('li', { class: 'it rv ' + kind, 'data-min': stopMin(s) == null ? '' : String(stopMin(s)) }, [el('span', { class: 'dot' }), card]);
+  }
+
+  function notice(cls, icon, title, content) {
+    var n = el('div', { class: 'notice rv ' + cls, html: icon });
+    n.appendChild(el('div', null, [el('b', { text: title }), content]));
+    return n;
+  }
+
+  function fmt(iso) {
+    var d = new Date(iso);
+    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  function num(v, unit, digits) { return v == null ? '-' : (digits ? v.toFixed(digits) : Math.round(v)) + unit; }
+
+  // 날씨 아이콘은 색으로 바로 구분되도록 해, 달, 구름, 빗방울을 조합해 그림 (viewBox 64)
+  var SUN = '<g class="a-sun" fill="#FFC531"><circle cx="32" cy="32" r="11"/><g stroke="#FFC531" stroke-width="4" stroke-linecap="round">' +
+    '<path d="M32 9v6M32 49v6M9 32h6M49 32h6M15.7 15.7l4.2 4.2M44.1 44.1l4.2 4.2M15.7 48.3l4.2-4.2M44.1 19.9l4.2-4.2"/></g></g>';
+  var MOON = '<path class="a-moon" fill="#FFD25E" d="M38 10a22 22 0 1 0 16 36A18 18 0 1 1 38 10z"/>';
+  var CLOUD = function (fill, x, y, sc) {
+    return '<g class="a-cloud"><g transform="translate(' + x + ' ' + y + ') scale(' + sc + ')"><path fill="' + fill + '" d="M18 46h30a11 11 0 0 0 0-22 15 15 0 0 0-28.6 3.5A9.5 9.5 0 0 0 18 46z"/></g></g>';
+  };
+  function wxIcon(code, night) {
+    var orb = night ? MOON : SUN, small = '<g transform="translate(-6 -8) scale(.78)">' + orb + '</g>';
+    var drops = '<g class="a-drops" stroke="#5AB4FF" stroke-width="4" stroke-linecap="round"><path d="M22 52l-3 7M33 52l-3 7M44 52l-3 7"/></g>';
+    var body;
+    if (code === 0) body = orb;
+    else if (code === 1 || code === 2) body = small + CLOUD('#EEF3F8', 4, 6, .95);
+    else if (code === 3) body = CLOUD('#B9C4D2', -6, -4, .8) + CLOUD('#E3E9F0', 4, 6, .95);
+    else if (code === 45 || code === 48) body = '<g stroke="#C9D3DE" stroke-width="4" stroke-linecap="round"><path d="M12 24h40M8 34h44M14 44h38"/></g>';
+    else if (code >= 71 && code <= 77) body = CLOUD('#E3E9F0', 2, -4, .95) + '<g fill="#fff"><circle cx="22" cy="54" r="3"/><circle cx="34" cy="56" r="3"/><circle cx="46" cy="54" r="3"/></g>';
+    else if (code >= 95) body = CLOUD('#9AA8BA', 2, -6, .95) + '<path class="a-bolt" fill="#FFC531" d="M34 40l-8 13h7l-3 10 11-15h-7l4-8z"/>';
+    else if (code >= 51) body = CLOUD('#AEBBCB', 2, -6, .95) + drops;
+    else body = orb;
+    return '<svg viewBox="0 0 64 64" aria-hidden="true">' + body + '</svg>';
+  }
+  function sky(code) {
+    if (code >= 51) return 'rain';
+    if (code === 3 || code === 45 || code === 48) return 'cloud';
+    return 'clear';
+  }
+  // 여행 당일 밤에는 지금 시각 기준으로 밤하늘 색을 씀
+  function skyClass(day, w) { var v = heroValues(day, w); return v.night ? 'night' : sky(v.code); }
+  function uvLabel(v) { return v == null ? '' : T(v < 3 ? '낮음' : v < 6 ? '보통' : v < 8 ? '높음' : v < 11 ? '매우 높음' : '위험'); }
+  function hourNight(w, h) {
+    var rise = w.sunrise ? +w.sunrise.slice(0, 2) : 6, set = w.sunset ? +w.sunset.slice(0, 2) : 18;
+    return h < rise || h > set;
+  }
+  function avgHum(w) {
+    if (!w.hours || !w.hours.length) return null;
+    return w.hours.reduce(function (a, h) { return a + (h[7] || 0); }, 0) / w.hours.length;
+  }
+  // 여행 당일이면 지금 시각 값, 아니면 낮 최고 기온을 크게 보여줌
+  function heroValues(day, w) {
+    var now = tripNow();
+    if (day.date === now.date && w.hours && w.hours.length) {
+      var h = w.hours[Math.min(23, Math.floor(now.min / 60))];
+      return { big: h[1], sub: T('지금, 체감 {t}', { t: num(h[2], '°') }), code: h[5], night: hourNight(w, h[0]) };
+    }
+    return { big: w.max, sub: T('낮 최고 기온'), code: w.code, night: false };
+  }
+  // 지표 아이콘은 값을 보여 주는 움직임: 바람은 풍속만큼 빠르게 흐르고, 습도는 물방울이 습도만큼 차오르고,
+  // 강수 확률은 확률이 높을수록 빗방울이 많이 떨어짐 (0%면 그대로). 자외선은 해가 돎
+  var MICON_N = 0;
+  var DROP = 'M12 3s7 7.6 7 12a7 7 0 0 1-14 0c0-4.4 7-12 7-12z';
+  var WIND = 'M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8';
+  function micon(k, w) {
+    if (k === 'wind') {
+      var sec = w.wind == null ? 3 : Math.max(0.8, Math.min(3, 3 - w.wind * 0.25));
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="' + WIND + '" opacity=".35"/>' +
+        '<path class="a-gust" pathLength="100" stroke-dasharray="22 78" style="animation-duration:' + sec.toFixed(1) + 's" d="' + WIND + '"/></svg>';
+    }
+    if (k === 'hum') {
+      var h = avgHum(w) == null ? 0 : Math.max(0, Math.min(100, avgHum(w))), id = 'hum' + (++MICON_N);
+      var top = 22 - 19 * h / 100, wave = 'M-12 ' + top.toFixed(1);
+      for (var x = 0; x < 8; x++) wave += x === 0 ? ' q3 -1.2 6 0' : ' t6 0';
+      return '<svg viewBox="0 0 24 24"><defs><clipPath id="' + id + '"><path d="' + DROP + '"/></clipPath></defs>' +
+        '<path d="' + DROP + '" fill="rgba(124,200,255,.18)" stroke="#7CC8FF" stroke-width="1.5"/>' +
+        '<g clip-path="url(#' + id + ')"><g class="a-fill" style="--d:' + (19 * h / 100).toFixed(1) + 'px"><path class="a-wave" fill="#7CC8FF" d="' + wave + ' V24 H-12z"/></g></g></svg>';
+    }
+    if (k === 'pop') {
+      var p = w.pop || 0, n = p >= 60 ? 3 : p >= 30 ? 2 : p > 0 ? 1 : 0;
+      var drops = [[12, 0], [6, 3], [18, 3]].slice(0, n).map(function (d, j) {
+        return '<path class="a-rain" style="animation-delay:' + (j * 0.35).toFixed(2) + 's" stroke="#7CC8FF" d="M' + d[0] + ' ' + (d[1] - 2.5) + 'v2.5"/>';
+      }).join('');
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 18 0H3zM12 12v7a2 2 0 0 1-4 0M12 3V2"/>' + drops + '</svg>';
+    }
+    return MICON[k];
+  }
+  var MICON = {
+    wind: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/></svg>',
+    hum: '<svg viewBox="0 0 24 24"><path fill="#7CC8FF" d="M12 3s7 7.6 7 12a7 7 0 0 1-14 0c0-4.4 7-12 7-12z"/></svg>',
+    pop: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 18 0H3zM12 12v7a2 2 0 0 1-4 0M12 3V2"/></svg>',
+    uv: '<svg viewBox="0 0 24 24"><g class="a-sun"><circle cx="12" cy="12" r="5" fill="#FFC531"/><path stroke="#FFC531" stroke-width="2" stroke-linecap="round" d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></g></svg>'
+  };
+  function metrics(w) {
+    var items = [['wind', num(w.wind, 'm/s', 1), T('최대 풍속')], ['hum', num(avgHum(w), '%'), T('평균 습도')],
+      ['pop', num(w.pop, '%'), T('강수 확률')], ['uv', w.uv == null ? '-' : w.uv.toFixed(1) + ' ' + uvLabel(w.uv), T('자외선')]];
+    return el('div', { class: 'wx-metrics' }, items.map(function (m) {
+      return el('div', { class: 'wx-m' }, [el('i', { html: micon(m[0], w) }), el('b', { text: m[1] }), el('span', { text: m[2] })]);
+    }));
+  }
+  function hero(day, w, big) {
+    var v = heroValues(day, w);
+    return el('div', { class: 'wx-hero' + (big ? ' big' : '') }, [
+      el('i', { class: 'wx-ic', html: wxIcon(v.code, v.night) }),
+      el('div', { class: 'wx-t' }, [el('b', { text: num(v.big, '°') }), el('span', { text: v.sub })]),
+      el('div', { class: 'wx-hl' }, [el('span', { class: 'hi', text: T('최고 {t}', { t: num(w.max, '°') }) }), el('span', { class: 'lo', text: T('최저 {t}', { t: num(w.min, '°') }) })])
+    ]);
+  }
+
+  // 시간별 그래프는 한 장의 SVG 로 그려 가로로 넘겨 봄 (탭에 따라 기온, 바람, 습도)
+  var WX_TAB = 'temp';
+  function hourlySvg(day, w, tab) {
+    var CW = 58, H = 176, n = w.hours.length, W = CW * n;
+    var idx = { temp: 1, wind: 6, hum: 7 }[tab], unit = { temp: '°', wind: '', hum: '%' }[tab];
+    var vals = w.hours.map(function (h) { return h[idx] == null ? 0 : h[idx]; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), span = hi - lo || 1;
+    var now = tripNow(), nowH = day.date === now.date ? Math.floor(now.min / 60) : -1;
+    var out = '<svg class="wx-hsvg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">';
+    var pts = [];
+    w.hours.forEach(function (h, i) {
+      var cx = i * CW + CW / 2, y = 150 - (vals[i] - lo) / span * 34;
+      pts.push(cx + ',' + y.toFixed(1));
+      var hh = h[0], label = hh === nowH ? T('지금') : T(hh < 12 ? '오전 {h}시' : '오후 {h}시', { h: hh % 12 === 0 ? 12 : hh % 12 });
+      if (hh === nowH) out += '<rect x="' + (i * CW + 3) + '" y="2" width="' + (CW - 6) + '" height="' + (H - 4) + '" rx="12" fill="rgba(255,255,255,.12)"/>';
+      out += '<text x="' + cx + '" y="18" class="t">' + label + '</text>';
+      out += '<svg x="' + (cx - 16) + '" y="28" width="32" height="32" viewBox="0 0 64 64">' + wxIcon(h[5], hourNight(w, hh)).replace(/^<svg[^>]*>|<\/svg>$/g, '') + '</svg>';
+      if (h[3] != null && h[3] > 0) out += '<text x="' + cx + '" y="78" class="p' + (h[3] >= plan.rainThreshold ? ' wet' : '') + '">' + h[3] + '%</text>';
+      var txt = tab === 'wind' ? vals[i].toFixed(1) : Math.round(vals[i]) + unit;
+      out += '<text x="' + cx + '" y="' + (y - 10).toFixed(1) + '" class="v">' + txt + '</text>';
+    });
+    out += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"/>';
+    pts.forEach(function (pt) { var a = pt.split(','); out += '<circle cx="' + a[0] + '" cy="' + a[1] + '" r="3.5" fill="#fff"/>'; });
+    return out + '</svg>';
+  }
+
+  // 시간별 행은 [시, 기온, 체감, 강수확률, 강수량, 날씨코드, 풍속, 습도] 순서 (weather.py 와 같은 순서)
+  function showWeather(day) {
+    var w = dayWeather(day);
+    if (!w) return;
+    var loc = plan.locations[day.weather];
+    document.getElementById('wx-title').textContent = T('{d} {p} 날씨', { d: day.label, p: loc.name });
+    var box = document.getElementById('wx-body');
+    box.textContent = '';
+    var top = el('div', { class: 'wx-sky ' + skyClass(day, w) }, [
+      hero(day, w, true),
+      el('div', { class: 'wx-line', text: T('{c}, 강수량 {r}, 일출 {a}, 일몰 {b}', { c: wmo(w.code), r: num(w.rain, 'mm', 1), a: w.sunrise || '-', b: w.sunset || '-' }) }),
+      metrics(w)
+    ]);
+    box.appendChild(top);
+
+    var panel = el('div', { class: 'wx-panel' });
+    if (!w.hours || !w.hours.length) {
+      panel.appendChild(el('p', { class: 'wx-empty', text: T('시간별 예보는 다음 갱신 때 추가됩니다') }));
+    } else {
+      var seg = el('div', { class: 'wx-seg', role: 'tablist' });
+      var strip = el('div', { class: 'wx-strip' });
+      var draw = function () {
+        strip.innerHTML = hourlySvg(day, w, WX_TAB);
+        Array.prototype.forEach.call(seg.children, function (b) { b.setAttribute('aria-selected', b.getAttribute('data-k') === WX_TAB ? 'true' : 'false'); });
+      };
+      [['temp', '날씨'], ['wind', '바람'], ['hum', '습도']].forEach(function (t) {
+        var b = el('button', { type: 'button', role: 'tab', 'data-k': t[0], text: T(t[1]) });
+        b.addEventListener('click', function () { WX_TAB = t[0]; var x = strip.scrollLeft; draw(); strip.scrollLeft = x; });
+        seg.appendChild(b);
+      });
+      panel.appendChild(seg);
+      panel.appendChild(el('div', { class: 'wx-day', text: day.full }));
+      panel.appendChild(strip);
+      panel.appendChild(el('p', { class: 'wx-note', text: T('바람은 m/s, 파란 강수 확률은 비 판정 기준 {n}% 이상', { n: plan.rainThreshold }) }));
+      draw();
+      // 당일이면 지금 시각, 아니면 아침 6시부터 보이게
+      var now = tripNow(), startH = day.date === now.date ? Math.max(0, Math.floor(now.min / 60) - 1) : 6;
+      requestAnimationFrame(function () { strip.scrollLeft = startH * 58; });
+    }
+    box.appendChild(panel);
+    box.appendChild(el('p', { class: 'wx-upd', text: T('{t} 갱신, Open-Meteo 예보', { t: fmt(weather.updatedAt) }) }));
+    box.scrollTop = 0;
+    openSheet('wx-sheet');
+    // 숨겨진 시트 안에서 그린 아이콘은 iOS Safari 에서 움직임이 시작되지 않을 수 있어, 시트가 보인 뒤 아이콘을 다시 그려 움직임을 시작시킴
+    requestAnimationFrame(function () {
+      Array.prototype.forEach.call(box.querySelectorAll('.wx-hero .wx-ic, .wx-m i'), function (n) { n.innerHTML = n.innerHTML; });
+      syncMotion(box, true);
+    });
+  }
+
+  function weatherCard(day) {
+    var loc = plan.locations[day.weather];
+    var w = dayWeather(day);
+    if (!w) {
+      return el('div', { class: 'wx wx-sky cloud rv' }, [
+        el('div', { class: 'wx-line', text: T('{p} 날씨', { p: loc.name }) }),
+        el('div', { class: 'wx-foot', text: T(weather ? '이 날짜 예보가 아직 없음' : '날씨 데이터를 아직 불러오지 못함') })
+      ]);
+    }
+    var card = el('div', { class: 'wx wx-sky tap rv ' + skyClass(day, w), role: 'button', tabindex: '0' }, [
+      hero(day, w, false),
+      el('div', { class: 'wx-line', text: wmo(w.code) + ', ' + loc.name }),
+      metrics(w),
+      el('div', { class: 'wx-foot' }, [T('{t} 갱신', { t: fmt(weather.updatedAt) }), el('span', { class: 'wx-more', text: T('시간별 보기') })])
+    ]);
+    card.addEventListener('click', function () { showWeather(day); });
+    card.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showWeather(day); } });
+    return card;
+  }
+
+  function countUp(node, to) {
+    if (!motionOn() || !to) { node.firstChild.nodeValue = grouped(to); return; }
+    var t0 = null;
+    function step(t) {
+      if (!t0) t0 = t;
+      var k = Math.min(1, (t - t0) / 800);
+      node.firstChild.nodeValue = grouped(Math.round(to * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function onsenName(stops) {
+    for (var i = 0; i < stops.length; i++) if (stops[i].pid && plan.onsenPids.indexOf(stops[i].pid) !== -1) return stops[i].name;
+    return T('없음');
+  }
+
+  // 애플 제품 페이지처럼 화면에 들어올 때 하나씩 떠오르는 등장 효과
+  function reveal(root) {
+    var nodes = root.querySelectorAll('.rv:not(.in)');
+    var nums = root.querySelectorAll('[data-count]');
+    if (!motionOn() || !('IntersectionObserver' in window)) {
+      Array.prototype.forEach.call(nodes, function (n) { n.classList.add('in'); });
+      Array.prototype.forEach.call(nums, function (n) { countUp(n, +n.getAttribute('data-count')); });
+      return;
+    }
+    if (!io) io = new IntersectionObserver(function (es) {
+      var k = 0;
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var n = e.target;
+        n.style.transitionDelay = Math.min(k++ * 60, 300) + 'ms';
+        n.classList.add('in');
+        io.unobserve(n);
+        var num = n.querySelector('[data-count]');
+        if (num) countUp(num, +num.getAttribute('data-count'));
+      });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    Array.prototype.forEach.call(nodes, function (n) { io.observe(n); });
+  }
+
+  // 아이콘 움직임을 문서 시간 기준으로 맞춤. 날짜를 밀어 넘길 때 미리보기와 새로 그린 화면의 움직임이 같은 위치라 끊기지 않음.
+  // 한 번만 도는 움직임(습도 차오르기)은 intro 일 때만 처음부터 재생하고, 아니면 끝난 상태로 둠
+  function syncMotion(root, intro) {
+    if (!root.getAnimations) return;
+    root.getAnimations({ subtree: true }).forEach(function (a) {
+      if (!a.animationName || a.animationName.indexOf('a-') !== 0) return;
+      var once = a.effect && a.effect.getTiming().iterations !== Infinity;
+      if (!once || !intro) a.startTime = 0;
+    });
+  }
+  function renderDay(i, dir, keepScroll, quiet) {
+    var y = window.scrollY;
+    current = i;
+    moveTabs(i);
+    var main = document.getElementById('day');
+    main.textContent = '';
+    fillDay(main, i);
+
+    if (dir && motionOn() && main.animate) {
+      main.animate([{ transform: 'translateX(' + (dir * 100) + '%)' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.22,1,.36,1)' });
+    }
+    if (keepScroll) window.scrollTo(0, y);
+    if (quiet) settle(main); else reveal(main);
+    // settle 로 등장 상태를 먼저 정한 뒤에 맞춰야 함. 먼저 부르면 스타일이 계산되면서 카드 등장 효과가 다시 재생돼 화면이 흔들림
+    syncMotion(main, !quiet);
+    markNow(false);
+  }
+
+  // 등장 효과 없이 바로 최종 모습으로 (조용한 갱신, 스와이프 미리보기)
+  function settle(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('.rv'), function (n) { n.classList.add('in'); });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-count]'), function (n) { n.firstChild.nodeValue = grouped(+n.getAttribute('data-count')); });
+  }
+
+  // 그날 화면 내용을 주어진 상자에 채움 (본 화면과 스와이프 때 옆에 보이는 미리보기가 같은 모습이 되도록 공용)
+  function fillDay(main, i) {
+    var day = view(plan.days[i]);
+    var hero = el('div', { class: 'day-hero rv' }, [el('div', { class: 'eyebrow', text: day.full }), el('h2', { text: day.title })]);
+    if (day.point) hero.appendChild(el('span', { class: 'point', text: day.point }));
+    main.appendChild(hero);
+
+    var num = el('div', { class: 'v', 'data-count': String(dayCost(day.stops)) }, ['0', el('small', { text: price('') })]);
+    var stats = [el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: T('교통과 입장료') }), num, el('div', { class: 's', text: T('식비 제외') })])];
+    // 노천탕 칸은 온천 장소(onsenPids)가 있는 여행에서만 보여 줌
+    if (plan.onsenPids && plan.onsenPids.length) {
+      stats.push(el('div', { class: 'stat rv' }, [el('div', { class: 'l', text: T('노천탕') }), el('div', { class: 'v txt', text: onsenName(day.stops) }), el('div', { class: 's', text: T('하루 한 번') })]));
+    }
+    main.appendChild(el('div', { class: 'stats' }, stats));
+
+    main.appendChild(weatherCard(day));
+    if (day.swapped) {
+      main.appendChild(notice('rain', ICON.rain, T('날씨에 맞춰 날짜를 바꿨습니다'), lines('',
+        T(day.origin ? '원래 이 날은 {a} 일정. 비 예보 때문에 {o}의 {b} 일정과 맞바꿈' : '원래 이 날은 {a} 일정. 비 예보 때문에 {b} 일정과 맞바꿈',
+          { a: day.defaultTitle, b: day.title, o: day.origin && day.origin.label }))));
+    }
+    if (day.rainy) {
+      var rainBox = el('div', null, [lines('', day.rainNote)]);
+      if (day.skipped.length) rainBox.appendChild(el('ul', null, day.skipped.map(function (s) { return el('li', { text: T('빠진 일정: {n}', { n: s.name || s.title }) }); })));
+      main.appendChild(notice('rain', ICON.rain, T('비 예보로 일정이 바뀌었습니다'), rainBox));
+    }
+    if (day.towel) main.appendChild(notice('towel', ICON.towel, T('수건 챙기기'), lines('', day.towel)));
+
+    main.appendChild(el('div', { class: 'sec', text: T('일정') }));
+    var wake = wakeItem(i, day.stops);
+    main.appendChild(el('ol', { class: 'tl' }, (wake ? [wake] : []).concat(day.stops).map(function (s) {
+      return item(s.type === 'sleep' && !s.next ? withNext(s, i) : s, day.date + ':' + day.key + ':' + (s._k || s.title || s.name));
+    })));
+    // 하단 안내는 있는 문구만 이어 붙임
+    var foot = [plan.onsenTip, plan.ratingNote].filter(Boolean).join(sep());
+    if (foot) main.appendChild(el('p', { class: 'foot', text: foot }));
+    return day;
+  }
+
+  function moveTabs(i) {
+    var btns = document.querySelectorAll('#tabs button');
+    Array.prototype.forEach.call(btns, function (b, j) { b.setAttribute('aria-selected', j === i ? 'true' : 'false'); });
+    var b = btns[i], pill = document.getElementById('pill');
+    if (b) { pill.style.width = b.offsetWidth + 'px'; pill.style.transform = 'translateX(' + b.offsetLeft + 'px)'; }
+  }
+
+  // 오늘 탭이면 이미 시작한 일정 중 가장 최근 것을 현재로, 그 전은 지난 일정으로 표시
+  var capIo = null;
+  function markNow(scroll) {
+    var now = tripNow();
+    var day = plan.days[current];
+    var rows = document.querySelectorAll('#day .it');
+    var hit = -1;
+    Array.prototype.forEach.call(rows, function (r, j) {
+      r.classList.remove('now');
+      var c = r.querySelector('.now-chip'); if (c) c.remove();
+      var m = r.getAttribute('data-min');
+      if (day.date === now.date && m !== '' && +m <= now.min) hit = j;
+    });
+    var cap = document.getElementById('nowcap');
+    if (capIo) capIo.disconnect();
+    // 지난 날짜는 일정 전체를 완료로 접고, 진행 선도 끝까지 채움
+    var over = day.date < now.date;
+    Array.prototype.forEach.call(rows, function (r, j) { setPast(r, over || j < hit); });
+    if (hit === -1) {
+      progress(over && rows.length ? rows[rows.length - 1] : null);
+      if (scroll) window.scrollTo(0, 0);
+      // 다른 날짜를 보고 있으면 오늘 지금 일정으로 돌아가는 캡슐을 보여줌
+      var ti = plan.days.findIndex(function (d) { return d.date === now.date; });
+      var tv = ti !== -1 && ti !== current ? view(plan.days[ti]) : null;
+      var th = -1;
+      if (tv) tv.stops.forEach(function (s, j) { var m = stopMin(s); if (m != null && m <= now.min) th = j; });
+      if (th === -1) { cap.classList.remove('show'); return; }
+      var ts = tv.stops[th], tn = null;
+      for (var k = th + 1; k < tv.stops.length; k++) if (toMin(tv.stops[k].time) != null) { tn = tv.stops[k]; break; }
+      cap.querySelector('.a').textContent = T('지금  {t}', { t: ts.title || ts.name });
+      cap.querySelector('.b').textContent = tn ? T('다음  {a}  {t}', { a: tn.time, t: tn.title || tn.name }) : T('오늘 마지막 일정');
+      cap.classList.add('show');
+      cap.onclick = function () { renderDay(ti, ti > current ? 1 : -1); markNow('smooth'); };
+      return;
+    }
+    var cur = rows[hit];
+    cur.classList.add('now');
+    cur.querySelector('.time').appendChild(el('span', { class: 'now-chip', text: T('지금') }));
+    var next = null;
+    for (var j = hit + 1; j < rows.length; j++) if (rows[j].getAttribute('data-min') !== '') { next = rows[j]; break; }
+    var t = cur.querySelector('.choice-tag') || cur.querySelector('.title');
+    cap.querySelector('.a').textContent = T('지금  {t}', { t: t.firstChild.textContent });
+    var nt = next && (next.querySelector('.choice-tag') || next.querySelector('.title'));
+    cap.querySelector('.b').textContent = next ? T('다음  {a}  {t}', { a: next.getAttribute('data-min').replace(/^(\d+)$/, function (m) { return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }), t: nt.firstChild.textContent }) : T('오늘 마지막 일정');
+    // 현재 일정이 화면에 보이는 동안은 캡슐을 숨기고, 스크롤해서 벗어나면 보여줌 (상단 날짜 바에 가려진 부분은 안 보이는 것으로 봄)
+    if ('IntersectionObserver' in window) {
+      capIo = new IntersectionObserver(function (es) {
+        cap.classList.toggle('show', !es[es.length - 1].isIntersecting);
+      }, { rootMargin: '-' + document.getElementById('bar').offsetHeight + 'px 0px 0px 0px' });
+      capIo.observe(cur);
+    } else cap.classList.add('show');
+    progress(cur);
+    cap.onclick = function () { scrollUnderBar(cur, motionOn(), 12); };
+    if (scroll) scrollUnderBar(cur, scroll === 'smooth' && motionOn(), 12);
+  }
+
+  function labelOf(r) { var t = r.querySelector('.choice-tag') || r.querySelector('.title'); return t ? t.firstChild.textContent : ''; }
+
+  // 지난 일정은 시각과 제목 한 줄로 접고, 누르면 펼쳐서 원래 카드를 보여줌
+  function setPast(r, past) {
+    var sum = r.querySelector('.past-sum');
+    if (!past) { r.classList.remove('past', 'open'); if (sum) sum.remove(); var f = r.querySelector('.fold'); if (f) f.remove(); return; }
+    r.classList.add('past');
+    if (sum) return;
+    sum = el('button', { class: 'past-sum', type: 'button', 'aria-label': T('지난 일정 펼치기') }, [
+      el('span', { class: 'time', text: r.querySelector('.time').firstChild.textContent }),
+      el('span', { class: 't', text: labelOf(r) }),
+      el('span', { class: 'done', text: T('완료') }),
+      el('span', { class: 'chev', html: ICON.chev })
+    ]);
+    // 펼친 카드에서도 다시 접을 수 있다는 것을 보여줌
+    r.querySelector('.it-head').appendChild(el('span', { class: 'fold' }, [T('접기'), el('span', { class: 'chev', html: ICON.chev })]));
+    sum.addEventListener('click', function () { togglePast(r, true); });
+    r.querySelector('.it-head').addEventListener('click', function () { if (r.classList.contains('open')) togglePast(r, false); });
+    r.insertBefore(sum, r.querySelector('.card'));
+  }
+
+  // 지난 일정 펼치기: 카드가 한 줄 높이에서 늘어나며 나타나고, 접기: 줄어들며 한 줄 요약으로 돌아감
+  function togglePast(r, open) {
+    var card = r.querySelector('.card'), sum = r.querySelector('.past-sum'), dot = r.querySelector('.dot');
+    var now = function () { progress(progressTarget()); };
+    if (!(motionOn() && card.animate)) { r.classList.toggle('open', open); now(); return; }
+    // 접힌 모습과 펼친 모습의 높이, 줄 간격, 점 위치를 먼저 재고, 그 사이를 한 번에 이어서 움직임
+    // (끝난 뒤 한꺼번에 바뀌면 빈 줄이 남았다가 아래 일정이 튀어 오름)
+    var measure = function () { var cs = getComputedStyle(r); return { mb: cs.marginBottom, top: getComputedStyle(dot).top }; };
+    r.classList.remove('open'); var sumH = sum.offsetHeight, shut = measure();
+    r.classList.add('open'); var cardH = card.offsetHeight, wide = measure();
+    var a = open ? wide : shut, b = open ? shut : wide;
+    var from = open ? sumH : cardH, to = open ? cardH : sumH;
+    var o = { duration: open ? 300 : 250, easing: 'cubic-bezier(.22,1,.36,1)' };
+    r.classList.add('swap');
+    card.style.overflow = 'hidden';
+    card.animate([{ height: from + 'px', opacity: open ? 0 : 1 }, { height: to + 'px', opacity: open ? 1 : 0 }], o);
+    sum.animate([{ opacity: open ? 1 : 0 }, { opacity: open ? 0 : 1 }], o);
+    dot.animate([{ top: b.top }, { top: a.top }], o);
+    // 진행 선도 높이가 바뀌는 동안 매 프레임 따라가게 함
+    var done = false, line = document.querySelector('#day .tl-done');
+    if (line) line.style.transition = 'none';
+    (function follow() { now(); if (!done) requestAnimationFrame(follow); })();
+    r.animate([{ marginBottom: b.mb }, { marginBottom: a.mb }], o).onfinish = function () {
+      done = true;
+      if (line) line.style.transition = '';
+      card.style.overflow = '';
+      r.classList.remove('swap');
+      r.classList.toggle('open', open);
+      now();
+    };
+  }
+
+
+  // 타임라인 선을 처음부터 지금 일정의 점까지 초록으로 채워 진행 정도를 보여줌
+  // 진행 선의 끝: 오늘은 지금 일정, 지난 날짜는 마지막 일정
+  function progressTarget() {
+    var n = document.querySelector('#day .it.now');
+    if (n || !plan || plan.days[current].date >= tripNow().date) return n;
+    var rows = document.querySelectorAll('#day .it');
+    return rows[rows.length - 1] || null;
+  }
+  function progress(cur) {
+    var tl = document.querySelector('#day .tl');
+    if (!tl) return;
+    var bar = tl.querySelector('.tl-done');
+    var top = lineTop(tl);
+    if (!cur) { if (bar) bar.remove(); return; }
+    if (!bar) { bar = el('span', { class: 'tl-done' }); tl.insertBefore(bar, tl.firstChild); }
+    var dot = cur.querySelector('.dot');
+    bar.style.height = Math.max(0, cur.offsetTop + dot.offsetTop + dot.offsetHeight / 2 - top) + 'px';
+  }
+
+  // 세로 선이 첫 점 위로 삐져나오지 않도록 첫 점의 가운데에서 시작
+  function lineTop(tl) {
+    var first = tl.querySelector('.it'), d = first && first.querySelector('.dot');
+    var top = d ? first.offsetTop + d.offsetTop + d.offsetHeight / 2 : 8;
+    tl.style.setProperty('--tl-top', top + 'px');
+    return top;
+  }
+
+  // 고정된 날짜 바는 붙은 상태에서 offsetTop 이 스크롤 값과 같아져 기준이 될 수 없어서, 날짜 본문 위치에서 바 높이만큼 뺀 곳으로 이동
+  // 이동 후에는 바가 붙어 제목 줄만큼 높아지므로, 그 높이를 애니메이션 없이 먼저 적용하고 계산
+  var lastAutoY = -1;
+  function scrollUnderBar(target, smooth, gap) {
+    var bar = document.getElementById('bar');
+    bar.classList.add('snap', 'stuck');
+    // 등장 효과의 transform 이 위치 계산에 섞이지 않도록 레이아웃 기준 위치(offsetTop)로 계산
+    var top = 0;
+    for (var n = target; n; n = n.offsetParent) top += n.offsetTop;
+    var y = Math.max(0, top - bar.offsetHeight - (gap || 0));
+    lastAutoY = y;
+    requestAnimationFrame(function () { bar.classList.remove('snap'); });
+    if (!smooth) { window.scrollTo(0, y); return; }
+    // 브라우저 기본 부드러운 스크롤은 시간이 길고 기기마다 달라서, 거리와 상관없이 0.45초 안에 끝나도록 직접 움직임
+    var from = window.scrollY, dist = y - from, t0 = null, D = 450;
+    var ease = function (t) { return 1 - Math.pow(1 - t, 3); };
+    var step = function (ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / D);
+      window.scrollTo(0, from + dist * ease(k));
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  function toDayTop() { scrollUnderBar(document.getElementById('day'), false); }
+
+  function todayIndex() {
+    var d = tripNow().date;
+    for (var i = 0; i < plan.days.length; i++) if (plan.days[i].date === d) return i;
+    return 0;
+  }
+
+  function renderExtras() {
+    var box = document.getElementById('extras'), groups = plan.extras || [];
+    box.textContent = '';
+    if (!groups.length) return;
+    box.appendChild(el('div', { class: 'sec', text: T('저장 장소 더보기') }));
+    groups.forEach(function (g) {
+      var d = el('details', { class: 'ex rv' }, [el('summary', null, [g.title, el('span', { text: T('{n}곳', { n: g.items.length }) })])]);
+      g.items.forEach(function (s) { d.appendChild(el('div', { class: 'card' }, [body(s)])); });
+      box.appendChild(d);
+    });
+    reveal(box);
+  }
+
+  function renderFlights() {
+    var box = document.getElementById('flights'), flights = plan.flights || [];
+    box.textContent = '';
+    // 항공편이 없는 여행이면 칸 자체를 숨김
+    box.style.display = flights.length ? '' : 'none';
+    flights.forEach(function (f) {
+      box.appendChild(el('div', { class: 'row' }, [
+        el('div', { class: 'k' }, [el('b', { text: f.label }), f.date]),
+        el('div', null, [el('div', { class: 'leg' }, [el('span', { text: T('출발') }), f.dep]), el('div', { class: 'leg' }, [el('span', { text: T('도착') }), f.arr])])
+      ]));
+    });
+  }
+
+  // 날씨는 저장소의 공유 파일 하나를 모두가 같이 읽음. no-cache 라 매번 서버에 변경 여부를 묻고, 그대로면 304 로 내용 없이 끝남
+  function loadWeather() {
+    return fetch(WEATHER_URL, { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }).then(function (j) { weather = j; });
+  }
+
+  // 상단 제목, 기간, 문서 제목은 plan.json의 trip 값으로 채움
+  function renderTrip() {
+    document.title = plan.trip.title;
+    document.getElementById('trip-name').textContent = plan.trip.name;
+    document.getElementById('trip-period').textContent = plan.trip.period;
+  }
+
+  function init(p) {
+    plan = p;
+    renderTrip();
+    renderFlights();
+    var tabs = document.getElementById('tabs');
+    Array.prototype.forEach.call(tabs.querySelectorAll('.sk'), function (n) { n.remove(); });
+    plan.days.forEach(function (d, i) {
+      var b = el('button', { type: 'button', role: 'tab', text: d.label });
+      b.addEventListener('click', function () {
+        if (i === current) return;
+        renderDay(i, i > current ? 1 : -1);
+        toDayTop();
+      });
+      tabs.appendChild(b);
+    });
+    // 날씨에 따라 일정이 바뀌므로 날씨를 받은 뒤 한 번만 그림. 느린 망이면 2.5초 뒤 먼저 그리고, 늦게 온 날씨는 효과 없이 조용히 반영
+    var drawn = false;
+    var first = function () {
+      if (drawn) return;
+      drawn = true;
+      renderDay(todayIndex(), 0);
+      markNow('smooth');
+      renderExtras();
+      setInterval(function () { markNow(false); }, 60000);
+    };
+    var timer = setTimeout(first, 2500);
+    loadWeather().then(function () {
+      clearTimeout(timer);
+      if (drawn) {
+        // 사용자가 아직 스크롤하지 않았다면, 날씨 카드 높이가 바뀐 뒤에도 현재 일정 위치를 다시 맞춤
+        var stay = Math.abs(window.scrollY - lastAutoY) < 2;
+        renderDay(current, 0, true, true);
+        if (stay) markNow(true);
+      } else first();
+      rainModal();
+    }).catch(function () { clearTimeout(timer); first(); });
+  }
+
+  // 오늘 이후 일정이 날씨 때문에 바뀌었으면 처음 볼 때 한 번 안내 (같은 변경은 다시 띄우지 않음)
+  function rainModal() {
+    var today = tripNow().date;
+    var changed = plan.days.map(view).filter(function (v) { return v.date > today && (v.swapped || v.rainy); });
+    if (!changed.length) return;
+    var sig = changed.map(function (v) { return v.date + v.key + (v.rainy ? 'r' : ''); }).join(',');
+    if (load(RAIN_SEEN_KEY) === sig) return;
+    var box = document.getElementById('rain-body');
+    box.textContent = '';
+    changed.forEach(function (v) {
+      var parts = [];
+      if (v.swapped) parts.push(T('원래 {a} 일정에서 {b} 일정으로 바뀜', { a: v.defaultTitle, b: v.title }));
+      if (v.rainy) parts.push(v.skipped.length ? T('비 예보로 빠지는 일정: {n}', { n: v.skipped.map(function (s) { return s.name || s.title; }).join(comma()) }) : v.rainNote);
+      var b = el('button', { class: 'rain-day', type: 'button' }, [
+        el('b', { text: v.label + ' ' + v.title }),
+        el('span', { text: parts.join(sep()) })
+      ]);
+      b.addEventListener('click', function () {
+        closeSheet(document.getElementById('rain-sheet'));
+        renderDay(plan.days.findIndex(function (d) { return d.date === v.date; }), 1);
+        toDayTop();
+      });
+      box.appendChild(b);
+    });
+    save(RAIN_SEEN_KEY, sig);
+    openSheet('rain-sheet');
+  }
+
+  // 브라우저가 이전 스크롤 위치를 복원하면 현재 일정으로 이동한 것이 덮어써짐
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  var stored = load(MOTION_KEY);
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  applyMotion(stored == null ? !reduce : !!stored);
+  document.getElementById('motion-toggle').addEventListener('change', function (e) {
+    applyMotion(e.target.checked); save(MOTION_KEY, e.target.checked);
+    if (plan) renderDay(current, 0, true);
+  });
+  // 언어를 바꾸면 화면 문구와 일정 내용을 그 자리에서 다시 그림 (스크롤 위치 유지)
+  Array.prototype.forEach.call(document.querySelectorAll('#lang-seg button'), function (b) {
+    b.addEventListener('click', function () {
+      var l = b.getAttribute('data-lang');
+      if (l === LANG) return;
+      LANG = l; save(LANG_KEY, l);
+      applyStatic();
+      if (!rawPlan) return;
+      plan = localize(rawPlan);
+      renderTrip();
+      renderFlights();
+      Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function (t, i) { t.textContent = plan.days[i].label; });
+      renderDay(current, 0, true, true);
+      renderExtras();
+    });
+  });
+  document.getElementById('open-set').addEventListener('click', function () { openSheet('set-sheet'); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-close]'), function (n) {
+    n.addEventListener('click', function () { closeSheet(n.closest('.sheet')); });
+  });
+
+  // 시트는 아래로 끌어내려 닫음. 안쪽 내용이 스크롤된 상태면 먼저 스크롤로 둠.
+  // 새 일정 안내는 끌어내리거나 바깥을 눌러 닫으면 "나중에"와 같게 처리해야 같은 알림이 바로 다시 뜨지 않음
+  Array.prototype.forEach.call(document.querySelectorAll('.sheet'), function (s) {
+    var panel = s.querySelector('.panel'), scrim = s.querySelector('.scrim');
+    var dismiss = s.id === 'upd-sheet' ? function () { document.getElementById('upd-later').click(); } : function () { closeSheet(s); };
+    if (s.id === 'upd-sheet') scrim.addEventListener('click', dismiss);
+    // 어두운 바깥 영역을 밀어도 뒤 화면이 스크롤되지 않게 막음 (iOS는 body overflow 만으로는 안 막힘)
+    var block = function (e) { e.preventDefault(); };
+    scrim.addEventListener('touchmove', block, { passive: false });
+    scrim.addEventListener('wheel', block, { passive: false });
+    var y0 = null, x0 = 0, dy = 0, lock = null, t0 = 0;
+    var reset = function () { panel.style.transition = ''; scrim.style.transition = ''; panel.style.transform = ''; scrim.style.opacity = ''; };
+    panel.addEventListener('touchstart', function (e) {
+      var sc = e.target.closest('#wx-body');
+      if (e.touches.length !== 1 || (sc && sc.scrollTop > 0)) { y0 = null; return; }
+      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; lock = null; t0 = Date.now();
+    }, { passive: true });
+    panel.addEventListener('touchmove', function (e) {
+      if (y0 === null) return;
+      var my = e.touches[0].clientY - y0, mx = e.touches[0].clientX - x0;
+      if (lock === null && (Math.abs(my) > 8 || Math.abs(mx) > 8)) lock = my > 0 && Math.abs(my) > Math.abs(mx) ? 'y' : 'n';
+      if (lock !== 'y') return;
+      e.preventDefault();
+      dy = Math.max(0, my);
+      panel.style.transition = 'none'; scrim.style.transition = 'none';
+      panel.style.transform = 'translateY(' + dy + 'px)';
+      scrim.style.opacity = String(Math.max(0, 1 - dy / panel.offsetHeight));
+    }, { passive: false });
+    var end = function () {
+      if (y0 === null) return;
+      y0 = null;
+      if (lock !== 'y') return;
+      var shut = dy > Math.min(120, panel.offsetHeight * 0.25) || (dy > 40 && Date.now() - t0 < 250);
+      reset();
+      if (shut) dismiss();
+    };
+    panel.addEventListener('touchend', end, { passive: true });
+    panel.addEventListener('touchcancel', end, { passive: true });
+  });
+
+  var bar = document.getElementById('bar');
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(function () { bar.classList.toggle('stuck', bar.getBoundingClientRect().top <= 0); ticking = false; });
+  }, { passive: true });
+  // 좌우로 밀면 그날 화면이 손가락을 따라 움직이고, 옆에는 넘어갈 날짜 화면이 미리 채워져 함께 따라옴
+  (function () {
+    var main = document.getElementById('day');
+    var x0 = null, y0 = 0, dx = 0, lock = null, t0 = 0, peek = null, peekI = -1;
+    var W = function () { return main.offsetWidth || window.innerWidth; };
+    var bar = function () { return document.getElementById('bar').offsetHeight; };
+    var docTop = function (n) { var t = 0; for (; n; n = n.offsetParent) t += n.offsetTop; return t; };
+    // 넘어간 뒤 화면 맨 위가 될 위치: 이미 내려와 있으면 날짜 바 바로 아래, 아니면 지금 날짜 화면의 시작 위치
+    var targetTop = function () { return Math.max(docTop(main), window.scrollY + bar()); };
+    var move = function (x, ms) {
+      var tr = ms ? 'transform ' + ms + 'ms cubic-bezier(.22,1,.36,1)' : 'none';
+      main.style.transition = tr; main.style.transform = x ? 'translateX(' + x + 'px)' : '';
+      if (peek) { peek.style.transition = tr; peek.style.transform = 'translateX(' + x + 'px)'; }
+    };
+    var dropPeek = function () { if (peek) peek.remove(); peek = null; peekI = -1; };
+    var makePeek = function (i, dir) {
+      dropPeek();
+      peek = el('div', { class: 'day-peek', 'aria-hidden': 'true' });
+      peek.style.top = targetTop() + 'px';
+      peek.style.left = (main.offsetLeft + dir * W()) + 'px';
+      peek.style.width = W() + 'px';
+      fillDay(peek, i);
+      settle(peek);
+      if (plan.days[i].date < tripNow().date) Array.prototype.forEach.call(peek.querySelectorAll('.it'), function (r) { setPast(r, true); });
+      else if (plan.days[i].date === tripNow().date) {
+        var now = tripNow().min, rows = peek.querySelectorAll('.it'), hit = -1;
+        Array.prototype.forEach.call(rows, function (r, j) { var m = r.getAttribute('data-min'); if (m !== '' && +m <= now) hit = j; });
+        Array.prototype.forEach.call(rows, function (r, j) { setPast(r, j < hit); });
+      }
+      document.body.appendChild(peek);
+      syncMotion(peek, false);
+      peekI = i;
+    };
+    main.addEventListener('touchstart', function (e) {
+      if (!plan || e.touches.length !== 1 || e.target.closest('.wx-strip, input, iframe')) { x0 = null; return; }
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; lock = null; t0 = Date.now();
+    }, { passive: true });
+    main.addEventListener('touchmove', function (e) {
+      if (x0 === null) return;
+      var mx = e.touches[0].clientX - x0, my = e.touches[0].clientY - y0;
+      if (lock === null && (Math.abs(mx) > 10 || Math.abs(my) > 10)) lock = Math.abs(mx) > Math.abs(my) * 1.2 ? 'x' : 'y';
+      if (lock !== 'x') return;
+      e.preventDefault();
+      if (!motionOn()) { dx = mx; return; }
+      var dir = mx < 0 ? 1 : -1, i = current + dir;
+      var edge = i < 0 || i >= plan.days.length;
+      if (edge) dropPeek(); else if (peekI !== i) makePeek(i, dir);
+      dx = edge ? mx * 0.3 : mx;
+      move(dx, 0);
+    }, { passive: false });
+    var end = function () {
+      if (x0 === null) return;
+      x0 = null;
+      if (lock !== 'x') return;
+      var fast = Math.abs(dx) > 30 && Date.now() - t0 < 250;
+      var dir = dx < 0 ? 1 : -1, i = current + dir;
+      if ((Math.abs(dx) < W() * 0.25 && !fast) || i < 0 || i >= plan.days.length) {
+        move(0, motionOn() ? 260 : 0);
+        setTimeout(dropPeek, 280);
+        return;
+      }
+      var top = targetTop();
+      var finish = function () {
+        var keep = window.scrollY;
+        renderDay(i, 0, false, true);
+        move(0, 0);
+        dropPeek();
+        // 미리보기가 있던 자리 그대로 이어지도록 스크롤을 맞춤
+        window.scrollTo(0, keep + (docTop(main) - top));
+      };
+      if (!motionOn()) { finish(); return; }
+      if (peekI !== i) makePeek(i, dir);
+      move(-dir * W(), 240);
+      setTimeout(finish, 250);
+    };
+    main.addEventListener('touchend', end, { passive: true });
+    main.addEventListener('touchcancel', function () { if (x0 !== null) { x0 = null; move(0, 200); setTimeout(dropPeek, 220); } }, { passive: true });
+  })();
+
+  (function () {
+    var y0 = null, x0 = 0, pull = 0, mode = null, ptr = document.getElementById('ptr'), ticks = ptr.querySelectorAll('rect');
+    var LIMIT = 70;
+    var move = function (y, ms) {
+      var tr = ms ? ms + 'ms cubic-bezier(.22,1,.36,1)' : '0s';
+      document.body.style.transition = 'padding-top ' + tr;
+      ptr.style.transition = 'height ' + tr;
+      document.body.style.paddingTop = y ? y + 'px' : '';
+      ptr.style.height = y + 'px';
+    };
+    document.addEventListener('touchstart', function (e) {
+      if (window.scrollY > 0 || e.touches.length !== 1 || document.querySelector('.sheet.open')) { y0 = null; return; }
+      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; pull = 0; mode = null;
+    }, { passive: true });
+    document.addEventListener('touchmove', function (e) {
+      if (y0 === null) return;
+      var dy = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
+      if (mode === null && (Math.abs(dy) > 8 || Math.abs(dx) > 8)) mode = dy > 0 && Math.abs(dy) > Math.abs(dx) ? 'pull' : 'none';
+      if (mode !== 'pull') return;
+      e.preventDefault();
+      pull = Math.min(140, Math.max(0, dy) * 0.45);
+      move(pull, 0);
+      var n = Math.min(12, Math.ceil(12 * pull / LIMIT));
+      Array.prototype.forEach.call(ticks, function (r, k) { r.style.opacity = k < n ? (0.25 + 0.75 * k / 11).toFixed(2) : 0; });
+    }, { passive: false });
+    document.addEventListener('touchend', function () {
+      if (y0 === null) return;
+      y0 = null;
+      if (mode !== 'pull') return;
+      if (pull >= LIMIT) {
+        ptr.classList.add('load');
+        move(56, 200);
+        setTimeout(function () { location.reload(); }, 250);
+      } else move(0, 250);
+    }, { passive: true });
+  })();
+
+  window.addEventListener('resize', function () { if (plan) { moveTabs(current); progress(progressTarget()); } });
+
+  function net() { document.getElementById('net').hidden = navigator.onLine; }
+  window.addEventListener('online', net); window.addEventListener('offline', net); net();
+
+  // 언어를 바꿀 때 바로 쓸 수 있도록 번역 파일도 함께 받아 둠 (없거나 실패하면 한국어로 표시)
+  applyStatic();
+  Promise.all([
+    fetch(DATA + 'plan.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }),
+    fetch(DATA + 'i18n.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; })
+  ]).then(function (a) { I18N = a[1]; rawPlan = a[0]; init(localize(rawPlan)); }).catch(function () {
+    document.getElementById('day').textContent = T('일정을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.');
+  });
+
+  // 오프라인에서도 쓰도록 서비스 워커가 마지막으로 받은 화면과 데이터를 보관함.
+  // 온라인이면 새 버전이 있는지 확인해 미리 받아 두고, 일정이 바뀌는 변경이면 새로고침할지 물어봄.
+  // 나중에를 눌러도 앱을 완전히 종료했다가 다시 열면 받아 둔 새 버전이 자동으로 반영됨.
+  var dismissed = null, asking = false;
+  function checkUpdate() {
+    var sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+    if (!sw || !navigator.onLine || asking) return;
+    if (document.querySelector('.sheet.open')) { setTimeout(checkUpdate, 5000); return; }
+    var ch = new MessageChannel();
+    ch.port1.onmessage = function (e) {
+      var r = e.data || {};
+      if (!r.ask || r.sig === dismissed) return;
+      asking = true;
+      openSheet('upd-sheet');
+      document.getElementById('upd-later').onclick = function () {
+        dismissed = r.sig; asking = false; closeSheet(document.getElementById('upd-sheet'));
+      };
+    };
+    sw.postMessage('check', [ch.port2]);
+  }
+  document.getElementById('upd-now').addEventListener('click', function () { location.reload(); });
+  document.getElementById('reload-btn').addEventListener('click', function () { location.reload(); });
+  window.addEventListener('online', checkUpdate);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || !plan) return;
+    markNow(false);
+    checkUpdate();
+  });
+  setInterval(function () { if (document.visibilityState === 'visible') checkUpdate(); }, 15 * 60000);
+
+  if ('serviceWorker' in navigator) {
+    // 공용 sw.js 하나를 여행 폴더 범위로 따로 등록해 여행마다 보관본을 나눔
+    navigator.serviceWorker.register('../sw.js', { scope: './' }).catch(function () {});
+    navigator.serviceWorker.ready.then(function () { setTimeout(checkUpdate, 3000); });
+  }
+})();
