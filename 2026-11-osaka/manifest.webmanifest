@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "오사카 동선",
+  "short_name": "오사카",
+  "description": "오사카 3박 4일 가족여행 일정",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f7",
+  "theme_color": "#f5f5f7",
+  "icons": [
+    {
+      "src": "https://aleph-kim.github.io/travle-plan/2026-11-osaka/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://aleph-kim.github.io/travle-plan/2026-11-osaka/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "https://aleph-kim.github.io/travle-plan/2026-11-osaka/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

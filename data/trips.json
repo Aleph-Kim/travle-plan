@@ -1,3 +1,4 @@
 [
-  { "slug": "2026-10-hiroshima", "name": { "ko": "히로시마", "en": "Hiroshima", "ja": "広島" }, "start": "2026-10-15", "end": "2026-10-19" }
+  { "slug": "2026-10-hiroshima", "name": { "ko": "히로시마", "en": "Hiroshima", "ja": "広島" }, "start": "2026-10-15", "end": "2026-10-19" },
+  { "slug": "2026-11-osaka", "name": { "ko": "오사카", "en": "Osaka", "ja": "大阪" }, "start": "2026-11-13", "end": "2026-11-16" }
 ]

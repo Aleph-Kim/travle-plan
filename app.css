@@ -270,6 +270,8 @@ a { color: var(--blue); text-decoration: none; }
 .ex > summary span { color: var(--ink3); font-weight: 500; }
 .ex .card { box-shadow: none; border-radius: 0; border-top: .5px solid var(--sep); }
 .foot { font-size: 12px; color: var(--ink3); margin: 16px 4px 0; }
+.trip-foot { margin: 40px 4px 0; text-align: center; font-size: 13px; color: var(--ink3); line-height: 1.6; }
+.trip-foot .n { font-size: 12px; font-variant-numeric: tabular-nums; }
 
 #nowcap {
   position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 8; width: max-content; max-width: calc(min(430px, 100vw) - 64px);
