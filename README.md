@@ -315,11 +315,12 @@
 - 화면과 동작 코드: `index.html`, `<슬러그>/index.html`, `app.js`, `app.css`, `sw.js`, `<슬러그>/manifest.webmanifest`
 - 날씨 갱신 코드: `.github/workflows/weather.yml`, `.github/scripts/weather.py`
 - 빌드 스크립트의 코드 부분: `data/<슬러그>/build.py`, `i18n.py` (스크립트 안에 적힌 장소, 일정, 후기 같은 데이터 값은 제외)
-- 아이콘과 공유 이미지: `icon.svg`, `<슬러그>/icon-*.png`, `<슬러그>/icon.svg`, `<슬러그>/share.png`
+- 아이콘과 공유 이미지: `icon.svg`, `<슬러그>/icon-*.png`, `<슬러그>/icon.svg`, `<슬러그>/share.png` (히로시마 공유 이미지는 제외)
 
 **제외**
 - 개인 여행 데이터와 개인정보: `data/trips.json`, `data/<슬러그>/plan.json`, `i18n.json`, `saved/*.csv`(구글 지도 저장 목록 원본), 숙소, 일정, 이동 기록 등 이 README의 "현재 데이터" 절에 적힌 내용
 - 외부 서비스에서 가져온 정보: 구글 지도의 장소 정보, 평점, 후기와 그 요약, 타베로그 평점, Open-Meteo 예보(`weather.json`), OpenStreetMap 경로 결과, 교통, 시설 운영사의 요금과 시각표. 각 서비스와 원저작자의 약관, 라이선스를 따릅니다
+- 히로시마 공유 이미지 `2026-10-hiroshima/share.png`: 스톡 사진이라 원저작자의 이용 조건을 따릅니다
 - `config.js`의 구글 Maps Embed API 키: 이 사이트 전용입니다. 다른 곳에서 쓰려면 직접 발급한 키로 바꿔야 합니다
 
 ## 참고
