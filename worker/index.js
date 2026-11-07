@@ -1,42 +1,8 @@
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-cache' };
 const dataRoot = '/travle-plan/data/';
-const seedNeeded = 'COALESCE((SELECT revision FROM dataset_state WHERE id = 1), 0) < ?';
-
-async function importDataset(db) {
-  const revision = dataset.revision;
-  const current = await db.prepare('SELECT revision FROM dataset_state WHERE id = 1').first('revision');
-  if (current >= revision) return;
-
-  // 여러 요청이 동시에 들어와도 데이터와 버전을 한 트랜잭션에서 반영합니다.
-  const statements = [];
-  for (const trip of dataset.records) {
-    statements.push(db.prepare(`
-      INSERT INTO trips (slug, name_json, starts_on, ends_on, timezone)
-      SELECT ?, ?, ?, ?, ? WHERE ${seedNeeded}
-      ON CONFLICT(slug) DO UPDATE SET name_json = excluded.name_json,
-        starts_on = excluded.starts_on, ends_on = excluded.ends_on, timezone = excluded.timezone
-    `).bind(trip.slug, JSON.stringify(trip.name), trip.start, trip.end, trip.timezone, revision));
-    for (const [kind, body] of Object.entries(trip.documents)) {
-      // 기존 날씨에는 여행 당일과 지난 날짜의 확정 일정이 들어 있습니다.
-      const onConflict = kind === 'weather' ? 'DO NOTHING' : 'DO UPDATE SET body = excluded.body';
-      statements.push(db.prepare(`
-        INSERT INTO trip_documents (slug, kind, body)
-        SELECT ?, ?, ? WHERE ${seedNeeded}
-        ON CONFLICT(slug, kind) ${onConflict}
-      `).bind(trip.slug, kind, JSON.stringify(body), revision));
-    }
-  }
-  statements.push(db.prepare(`
-    INSERT INTO dataset_state (id, revision) VALUES (1, ?)
-    ON CONFLICT(id) DO UPDATE SET revision = excluded.revision
-    WHERE dataset_state.revision < excluded.revision
-  `).bind(revision));
-  await db.batch(statements);
-}
 
 async function travelData(db, path) {
   if (path === dataRoot + 'trips.json') {
-    await importDataset(db);
     const { results } = await db.prepare(
       'SELECT slug, name_json, starts_on, ends_on FROM trips ORDER BY starts_on, slug',
     ).all();
@@ -47,7 +13,6 @@ async function travelData(db, path) {
 
   const match = path.slice(dataRoot.length).match(/^([\da-z-]+)\/(plan|i18n|weather)\.json$/);
   if (!match) return new Response('Not found', { status: 404 });
-  await importDataset(db);
 
   const [, slug, kind] = match;
   const body = await db.prepare('SELECT body FROM trip_documents WHERE slug = ? AND kind = ?')

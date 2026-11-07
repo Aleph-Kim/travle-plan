@@ -146,7 +146,6 @@ async function updateWeatherTrip(db, trip, now) {
 }
 
 async function refreshTravelWeather(db) {
-  await importDataset(db);
   const { results: trips } = await db.prepare(`
     SELECT t.slug, t.timezone, p.body AS plan_body, w.body AS weather_body
     FROM trips t

@@ -2,16 +2,16 @@
 
 여행 일정을 휴대폰에서 보는 웹사이트입니다. ChatGPT Sites에서 운영하며, 여행 목록과 일정, 번역, 날씨는 D1에서 읽습니다. 새 여행은 같은 화면을 사용합니다. 필요한 데이터와 홈 화면 아이콘은 [새 여행에 쓰는 법](#새-여행에-쓰는-법)에 정리했습니다.
 
-- 운영 사이트: https://travle.aleph.kr
-- 여행: [히로시마 2026년 10월 15일 ~ 19일](https://travle.aleph.kr/travle-plan/2026-10-hiroshima/) ([현재 데이터](#현재-데이터-히로시마-2026))
-- 여행: [오사카 2026년 11월 13일 ~ 16일](https://travle.aleph.kr/travle-plan/2026-11-osaka/) ([현재 데이터](#현재-데이터-오사카-2026))
+- 운영 사이트: https://travel.aleph.kr
+- 여행: [히로시마 2026년 10월 15일 ~ 19일](https://travel.aleph.kr/travle-plan/2026-10-hiroshima/) ([현재 데이터](#현재-데이터-히로시마-2026))
+- 여행: [오사카 2026년 11월 13일 ~ 16일](https://travel.aleph.kr/travle-plan/2026-11-osaka/) ([현재 데이터](#현재-데이터-오사카-2026))
 
 ## 운영과 배포
 
 - 루트와 `/travle-plan/`은 같은 여행 목록을 표시합니다. 여행 주소는 `/travle-plan/<슬러그>/`입니다.
 - `web/`에는 기존 정적 화면, 서비스 워커, 아이콘이 있습니다. `npm run build`는 의존성 설치 없이 이 파일과 `worker/index.js`를 Sites용 Worker로 묶습니다.
 - 여행 목록은 D1의 `trips` 테이블에서, 일정·번역·날씨는 슬러그와 문서 종류로 구분한 `trip_documents`에서 읽습니다. 기존 `/travle-plan/data/…` 주소와 JSON 형식은 그대로 제공하며 응답은 DB에서 생성합니다. 스키마는 `drizzle/`에 있습니다.
-- 첫 데이터 요청에서 `worker/seed/`의 여행 자료를 D1에 한 번 입력합니다. 여러 요청이 겹쳐도 한 트랜잭션으로 반영하며, 등록한 데이터 버전은 `dataset_state`에 기록합니다. Sites에서 일정을 갱신할 때는 아래 GitHub 원본의 생성 규칙을 따라 목록·일정·번역 파일을 준비해 `worker/seed/`를 갱신하고 `revision.txt`를 올린 뒤 배포합니다. 새 여행은 `web/travle-plan/<슬러그>/`에 여행 페이지와 홈 화면 아이콘도 추가합니다. 가져오기는 포함된 여행만 추가하거나 수정하고 기존 날씨를 덮어쓰지 않습니다.
+- 여행 데이터는 운영 D1에서 관리합니다. 새 DB로 이전할 때는 데이터를 별도로 복원합니다.
 - Sites 예약 작업은 한국 시간 매시 17분에 Open-Meteo 예보를 가져와 D1에 저장합니다. 화면에는 마지막으로 저장된 예보를 표시합니다.
 - 오프라인에서는 기기에 저장된 마지막 응답을 사용합니다. 언어, 글자 크기, 인터랙션 효과, 선택지와 확인한 안내는 아래 기기 저장 규칙을 따릅니다. 지도는 구글 지도 링크로 엽니다.
 
@@ -23,11 +23,10 @@
 | `web/travle-plan/app.css`, `app.js`, `sw.js` | 공용 여행 화면, 세 언어의 화면 문구, 여행별 오프라인 캐시 |
 | `web/travle-plan/<슬러그>/` | 여행별 페이지 메타데이터, PWA 설정과 아이콘 |
 | `worker/index.js`, `worker/weather.js` | 화면과 D1 데이터를 제공하고 예약 작업이 호출하는 날씨 갱신 처리 |
-| `worker/seed/` | D1에 가져올 버전별 여행 데이터 |
 | `drizzle/` | D1 스키마 마이그레이션 |
 | `LICENSE` | 적용 범위는 [라이선스](#라이선스) 참고 |
 
-여행 데이터 원본은 [GitHub 저장소](https://github.com/Aleph-Kim/travle-plan)에 있습니다. 원본의 `data/<슬러그>/saved/*.csv`는 구글 지도 저장 목록, `build.py`와 `i18n.py`는 오사카 데이터 생성 스크립트입니다.
+여행 데이터 원본은 [GitHub 저장소](https://github.com/Aleph-Kim/travel-plan)에 있습니다. 원본의 `data/<슬러그>/saved/*.csv`는 구글 지도 저장 목록, `build.py`와 `i18n.py`는 오사카 데이터 생성 스크립트입니다.
 
 슬러그는 `연-월-지역` 형식이고, 데이터와 여행 페이지에 같은 슬러그를 씁니다.
 
@@ -205,9 +204,9 @@
 ## 새 여행에 쓰는 법
 
 1. `연-월-지역` 형식으로 슬러그를 정합니다.
-2. `worker/seed/<슬러그>/plan.json`에 일정, `i18n.json`에 영어와 일본어 번역을 넣고 `worker/seed/trips.json`에 여행 목록을 추가합니다. 날씨는 일정에 등록한 지역의 좌표와 시간대로 갱신합니다.
+2. 운영 D1의 `trips`에 목록 정보를 추가하고, `trip_documents`에 같은 슬러그의 일정(`plan`)과 영어·일본어 번역(`i18n`)을 등록합니다. 날씨는 일정에 등록한 지역의 좌표와 시간대로 갱신합니다.
 3. `web/travle-plan/<슬러그>/`에 여행 페이지와 PWA 설정, 아이콘을 추가합니다. 기존 여행 폴더를 복사해서 문서 제목, 공유 메타데이터, 아이콘과 앱 이름을 맞춥니다.
-4. `worker/seed/revision.txt`의 버전을 올립니다. `npm run build`로 확인한 뒤 승인받아 Sites에 배포합니다. 새 버전의 첫 데이터 요청에서 D1에 반영됩니다.
+4. `npm run build`로 확인한 뒤 승인받아 Sites에 배포합니다. 운영 사이트는 D1에 등록된 데이터를 읽습니다.
 
 ## 일정 작성 조건
 
@@ -239,7 +238,7 @@
 
 - 숙소: 히로시마시 니시구 히가시칸온마치 1-8 レジデンス東観音
 - 항공편: 10/15 12:00 인천 T1 출발, 13:40 히로시마 도착 / 10/19 14:40 히로시마 출발, 16:20 인천 T1 도착
-- 슬러그: `2026-10-hiroshima` (https://travle.aleph.kr/travle-plan/2026-10-hiroshima/)
+- 슬러그: `2026-10-hiroshima` (https://travel.aleph.kr/travle-plan/2026-10-hiroshima/)
 - 구글 지도 저장 목록 `data/2026-10-hiroshima/saved/히로시마.csv`(69곳), `data/2026-10-hiroshima/saved/온천.csv`(13곳)를 바탕으로 작성. 일정에 넣지 않은 저장 장소는 7개 묶음(저장한 술집, 숙소 근처 맛집, 시내 맛집, 미야지마, 오노미치, 쇼핑, 기타)
 - 평점과 후기 요약은 구글 지도, 타베로그를 2026년 10월 13일에 조회
 
@@ -272,7 +271,7 @@
 - 어머니, 형과 셋이 가는 가족여행
 - 숙소: 오사카시 니시나리구 산노 2-3-2 (체크인 15시, 체크아웃 11시). 도부쓰엔마에역 약 300m, 신이마미야역 약 800m
 - 항공편: 11/13 14:10 인천 T1 출발, 16:00 간사이 T2 도착 (제주항공 7C1393) / 11/16 17:00 간사이 T2 출발, 19:10 인천 T1 도착 (제주항공 7C1394). 위탁 수하물 15kg
-- 슬러그: `2026-11-osaka` (https://travle.aleph.kr/travle-plan/2026-11-osaka/)
+- 슬러그: `2026-11-osaka` (https://travel.aleph.kr/travle-plan/2026-11-osaka/)
 - 예약한 패키지 투어 (와그). 투어 일정은 바꾸지 않음
   - 14일: 라쿠투어 나라, 고베 버스투어 (https://www.waug.com/ko/activities/129562). 07:40 츠루동탄 소에몬초점 앞 집합, 07:50 출발
   - 15일: 아이트립 교토 버스투어 (https://www.waug.com/ko/activities/148017). 07:40~07:55 같은 곳 집합. 7일 전까지 전액 환불
@@ -307,18 +306,17 @@
 
 **MIT 대상**
 - Sites Worker, 스키마와 패키징 코드: `worker/index.js`, `worker/weather.js`, `drizzle/`, `scripts/build.mjs`
-- 화면과 동작 코드: `index.html`, `<슬러그>/index.html`, `app.js`, `app.css`, `sw.js`, `<슬러그>/manifest.webmanifest`
-- 날씨 갱신 코드: `.github/workflows/weather.yml`, `.github/scripts/weather.py`
+- 화면과 동작 코드: `web/`의 HTML, CSS, JavaScript, 웹 매니페스트
 - 빌드 스크립트의 코드 부분: `data/<슬러그>/build.py`, `i18n.py` (스크립트 안에 적힌 장소, 일정, 후기 같은 데이터 값은 제외)
-- 아이콘과 공유 이미지: `icon.svg`, `<슬러그>/icon-*.png`, `<슬러그>/icon.svg`, `<슬러그>/share.png` (히로시마 공유 이미지는 제외)
+- 아이콘과 공유 이미지: `web/`의 아이콘과 GitHub의 `<슬러그>/share.png` (히로시마 공유 이미지는 제외)
 
 **제외**
-- 개인 여행 데이터와 개인정보: `worker/seed/`의 여행 자료 및 해당 D1 데이터, `data/trips.json`, `data/<슬러그>/plan.json`, `i18n.json`, `saved/*.csv`(구글 지도 저장 목록 원본), 숙소, 일정, 이동 기록 등 이 README의 "현재 데이터" 절에 적힌 내용
+- 개인 여행 데이터와 개인정보: D1의 여행 데이터, `data/<슬러그>/saved/*.csv`(구글 지도 저장 목록 원본), 숙소, 일정, 이동 기록 등 이 README의 "현재 데이터" 절에 적힌 내용
 - 외부 서비스에서 가져온 정보: 구글 지도의 장소 정보, 평점, 후기와 그 요약, 타베로그 평점, Open-Meteo 예보(`weather.json`), OpenStreetMap 경로 결과, 교통, 시설 운영사의 요금과 시각표. 각 서비스와 원저작자의 약관, 라이선스를 따릅니다
 - 히로시마 공유 이미지 `2026-10-hiroshima/share.png`: 스톡 사진이라 원저작자의 이용 조건을 따릅니다
-- `config.js`의 구글 Maps Embed API 키: 이 사이트 전용입니다. 다른 곳에서 쓰려면 직접 발급한 키로 바꿔야 합니다
+- GitHub 원본의 `config.js`에 있는 구글 Maps Embed API 키
 
 ## 참고
 
 - 히로시마 `plan.json`을 만든 빌드 스크립트는 이 저장소에 들어 있지 않습니다. 오사카는 `data/2026-11-osaka/build.py`, `i18n.py`가 있습니다.
-- 구글 Maps Embed API 키는 `config.js`에 있으며, Google Cloud에서 이 사이트 도메인으로만 쓰이도록 제한해야 합니다.
+- 구글 Maps Embed API 키는 GitHub 원본의 `config.js`에 보관합니다.
