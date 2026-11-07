@@ -1,0 +1,175 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "6fc908c8-b30d-4c70-bf62-70da211ff517",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "dataset_state": {
+      "name": "dataset_state",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "revision": {
+          "name": "revision",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "dataset_state_singleton": {
+          "name": "dataset_state_singleton",
+          "value": "\"dataset_state\".\"id\" = 1"
+        },
+        "dataset_state_revision_positive": {
+          "name": "dataset_state_revision_positive",
+          "value": "\"dataset_state\".\"revision\" > 0"
+        }
+      }
+    },
+    "trip_documents": {
+      "name": "trip_documents",
+      "columns": {
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "trip_documents_slug_trips_slug_fk": {
+          "name": "trip_documents_slug_trips_slug_fk",
+          "tableFrom": "trip_documents",
+          "tableTo": "trips",
+          "columnsFrom": [
+            "slug"
+          ],
+          "columnsTo": [
+            "slug"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "trip_documents_slug_kind_pk": {
+          "columns": [
+            "slug",
+            "kind"
+          ],
+          "name": "trip_documents_slug_kind_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "trip_documents_kind_valid": {
+          "name": "trip_documents_kind_valid",
+          "value": "\"trip_documents\".\"kind\" IN ('plan', 'i18n', 'weather')"
+        },
+        "trip_documents_body_valid": {
+          "name": "trip_documents_body_valid",
+          "value": "json_valid(\"trip_documents\".\"body\")"
+        }
+      }
+    },
+    "trips": {
+      "name": "trips",
+      "columns": {
+        "slug": {
+          "name": "slug",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "name_json": {
+          "name": "name_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "starts_on": {
+          "name": "starts_on",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ends_on": {
+          "name": "ends_on",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "timezone": {
+          "name": "timezone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "weather_checked_at": {
+          "name": "weather_checked_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "trips_name_valid": {
+          "name": "trips_name_valid",
+          "value": "json_valid(\"trips\".\"name_json\")"
+        },
+        "trips_date_range": {
+          "name": "trips_date_range",
+          "value": "\"trips\".\"ends_on\" >= \"trips\".\"starts_on\""
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

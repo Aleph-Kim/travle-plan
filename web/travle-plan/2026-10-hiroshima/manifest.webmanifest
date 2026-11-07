@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "히로시마 동선",
+  "short_name": "히로시마",
+  "description": "히로시마, 미야지마, 오노미치 4박 5일 일정",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f7",
+  "theme_color": "#f5f5f7",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

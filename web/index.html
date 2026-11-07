@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<base href="/travle-plan/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>여행</title>
+<meta name="description" content="여행별 일정 모음">
+<link rel="canonical" href="https://travle.aleph.kr/">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="stylesheet" href="app.css">
+<style>
+.trip { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 11px 16px; color: var(--ink); }
+.trip + .trip { border-top: .5px solid var(--sep); }
+.trip b { display: block; font-size: 17px; font-weight: 600; }
+.trip span { color: var(--ink2); font-size: 15px; font-variant-numeric: tabular-nums; }
+.trip svg { flex: none; width: 12px; height: 12px; margin-left: auto; color: var(--ink3); }
+#list .sec { margin: 26px 20px 10px; }
+#list .msg { margin: 26px 20px; color: var(--ink2); }
+</style>
+</head>
+<body>
+<header class="hero"><div><h1 id="title">여행</h1></div></header>
+<main id="list"></main>
+<script>
+(function () {
+  'use strict';
+
+  // 여행 화면에서 고른 언어를 그대로 따름 (값은 여행 화면이 JSON 문자열로 저장)
+  var LANG = (function () {
+    try { var l = JSON.parse(localStorage.getItem('trip-lang')); return l === 'en' || l === 'ja' ? l : 'ko'; } catch (e) { return 'ko'; }
+  })();
+  var UI = {
+    en: { '여행': 'Trips', '진행 중인 여행': 'Ongoing', '다가오는 여행': 'Upcoming', '지난 여행': 'Past trips', '아직 여행이 없습니다': 'No trips yet', '여행 목록을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.': "Couldn't load the trips. Please check your network connection." },
+    ja: { '여행': '旅行', '진행 중인 여행': '旅行中', '다가오는 여행': 'これからの旅行', '지난 여행': '過去の旅行', '아직 여행이 없습니다': '旅行はまだありません', '여행 목록을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.': '旅行一覧を読み込めませんでした。ネットワーク接続を確認してください。' }
+  };
+  function T(k) { return (UI[LANG] && UI[LANG][k]) || k; }
+  var CHEV = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 2l4 4-4 4"/></svg>';
+
+  document.documentElement.lang = LANG;
+  document.title = T('여행');
+  document.getElementById('title').textContent = T('여행');
+  var list = document.getElementById('list');
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  // 한국어는 "2026. 10. 15 ~ 10. 19", 일본어는 "2026年10月15日～10月19日" 형식. 연도가 바뀌는 여행만 끝 날짜에도 연도 표시
+  function period(t) {
+    var a = t.start.split('-').map(Number), b = t.end.split('-').map(Number);
+    if (LANG === 'en') {
+      var f = new Intl.DateTimeFormat('en', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+      return f.formatRange(new Date(Date.UTC(a[0], a[1] - 1, a[2])), new Date(Date.UTC(b[0], b[1] - 1, b[2])));
+    }
+    var y = a[0] !== b[0];
+    if (LANG === 'ja') return a[0] + '年' + a[1] + '月' + a[2] + '日～' + (y ? b[0] + '年' : '') + b[1] + '月' + b[2] + '日';
+    return a.join('. ') + ' ~ ' + (y ? b : b.slice(1)).join('. ');
+  }
+
+  function section(title, trips) {
+    if (!trips.length) return;
+    list.appendChild(el('h2', 'sec', T(title)));
+    var box = el('div', 'group');
+    trips.forEach(function (t) {
+      var a = el('a', 'trip');
+      a.href = t.slug + '/';
+      var txt = el('div');
+      txt.appendChild(el('b', null, t.name[LANG] || t.name.ko));
+      txt.appendChild(el('span', null, period(t)));
+      a.appendChild(txt);
+      a.insertAdjacentHTML('beforeend', CHEV);
+      box.appendChild(a);
+    });
+    list.appendChild(box);
+  }
+
+  fetch('data/trips.json', { cache: 'no-cache' }).then(function (r) { return r.json(); }).then(function (trips) {
+    if (!trips.length) { list.appendChild(el('p', 'msg', T('아직 여행이 없습니다'))); return; }
+    // 진행 여부는 보는 기기의 날짜 기준 (YYYY-MM-DD 문자열 비교)
+    var today = new Date().toLocaleDateString('sv-SE');
+    var asc = function (x, y) { return x.start < y.start ? -1 : 1; };
+    section('진행 중인 여행', trips.filter(function (t) { return t.start <= today && today <= t.end; }).sort(asc));
+    section('다가오는 여행', trips.filter(function (t) { return t.start > today; }).sort(asc));
+    section('지난 여행', trips.filter(function (t) { return t.end < today; }).sort(asc).reverse());
+  }).catch(function () {
+    list.appendChild(el('p', 'msg', T('여행 목록을 불러오지 못했습니다. 네트워크 연결을 확인해 주세요.')));
+  });
+})();
+</script>
+</body>
+</html>
